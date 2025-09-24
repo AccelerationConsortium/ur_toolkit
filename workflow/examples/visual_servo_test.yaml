@@ -1,0 +1,93 @@
+# Visual Servo Test Workflow
+# Tests the visual servoing functionality with AprilTag-corrected positions
+
+workflow_info:
+  name: "Visual Servo Test"
+  description: "Test workflow demonstrating visual servoing capabilities"
+  version: "1.0"
+  author: "Robot System Tools"
+
+steps:
+  # Step 1: Move to home position
+  - action: movel
+    position: safe-home
+    speed: 0.2
+    description: "Move to safe home position"
+
+  # Step 2: Move to observation position (manual positioning)
+  - action: movel
+    position: observe-B
+    speed: 0.1
+    description: "Move to workspace observation position"
+
+  # Step 3: Wait for workspace to be ready
+  - action: delay
+    duration: 2.0
+    description: "Wait for workspace to settle"
+
+  # Step 4: Visual servo to grasp position
+  - action: visual_servo
+    position: grasp-B
+    speed: 0.05
+    type: movel
+    description: "Visual servo to grasp-B position using AprilTag correction"
+
+  # Step 5: Open gripper to prepare for grasping
+  - action: gripper_open
+    description: "Open gripper for grasping"
+
+  # Step 6: Move down slightly for grasping
+  - action: offset_move
+    offset: [0, 0, -0.02, 0, 0, 0]  # Move down 2cm
+    speed: 0.02
+    coordinate_system: tcp
+    description: "Descend for grasping"
+
+  # Step 7: Close gripper
+  - action: gripper_close
+    description: "Close gripper to grasp object"
+
+  # Step 8: Lift object
+  - action: offset_move
+    offset: [0, 0, 0.05, 0, 0, 0]  # Move up 5cm
+    speed: 0.05
+    coordinate_system: tcp
+    description: "Lift object"
+
+  # Step 9: Visual servo to place position
+  - action: visual_servo
+    position: place_target
+    speed: 0.05
+    type: movel
+    description: "Visual servo to place position using AprilTag correction"
+
+  # Step 10: Lower object for placing
+  - action: offset_move
+    offset: [0, 0, -0.03, 0, 0, 0]  # Move down 3cm
+    speed: 0.02
+    coordinate_system: tcp
+    description: "Lower object for placing"
+
+  # Step 11: Open gripper to release
+  - action: gripper_open
+    description: "Open gripper to release object"
+
+  # Step 12: Retract from place position
+  - action: offset_move
+    offset: [0, 0, 0.05, 0, 0, 0]  # Move up 5cm
+    speed: 0.05
+    coordinate_system: tcp
+    description: "Retract from place position"
+
+  # Step 13: Return to home
+  - action: movel
+    position: home
+    speed: 0.2
+    description: "Return to home position"
+
+# Workflow settings
+settings:
+  safe_mode: true
+  step_by_step: false
+  log_poses: true
+  emergency_stop_on_error: true

@@ -1,0 +1,19 @@
+# Robot System Configuration
+# Configuration for UR robot and other system components
+
+# UR Robot Configuration
+robot:
+  ip_address: "192.168.0.10"  # UR robot IP address
+  type: "UR"  # Robot type
+  
+  # Movement settings
+  default_speed: 0.03  # Default linear speed (m/s)
+  default_acceleration: 0.08  # Default acceleration (m/s²)
+  
+  # Safety settings
+  position_tolerance: 0.001  # Position tolerance in meters
+  rotation_tolerance: 0.01   # Rotation tolerance in radians
+
+# Camera Configuration (for future use)
+camera:
+  calibration_file: "camera_calibration/camera_calibration.yaml"

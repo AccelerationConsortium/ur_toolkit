@@ -1,0 +1,16 @@
+[flake8]
+# Ignore specific error codes that are less critical
+ignore = E402,E501,W503,E203
+
+# Maximum line length
+max-line-length = 88
+
+# Exclude directories
+exclude =
+    .git,
+    __pycache__,
+    .conda,
+    archive,
+    *.egg-info
+
+# Per-file ignores can also be used with # noqa comments

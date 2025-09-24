@@ -1,0 +1,64 @@
+# Archive directory - contains legacy/experimental code
+archive/
+
+# Virtual environments
+venv/
+env/
+.env/
+.venv/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Build directories
+franka_control_suite/build/
+.vscode/
+
+# Calibration data
+#calibration/data/
+# calibration/data/fg/*.csv 
+# calibration/data/fg/*.jpg 
+
+*.png
+*.pdf
+*.pyc   
+*.jpg
+*.csv
+
+!robot_toolkit/calibration_board/target_A4.pdf
+!robot_toolkit/calibration_board/target_US_letter.pdf
+!robot_toolkit/tests/data/*.png 
+!robot_toolkit/tests/data/*.pdf
+
+*.mtl
+*.dae
+*.mtl 
+*.obj 
+*.ply
+*.tgz
+
+!robot_toolkit/robot_arm_algos/src/inference/objects/**/*.dae
+!robot_toolkit/robot_arm_algos/src/inference/objects/**/*.mtl
+!robot_toolkit/robot_arm_algos/src/inference/objects/**/*.obj

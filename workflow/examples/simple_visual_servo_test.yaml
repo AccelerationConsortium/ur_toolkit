@@ -1,0 +1,53 @@
+# Simple Visual Servo Test
+# Basic test of visual servoing functionality
+
+workflow_info:
+  name: "Simple Visual Servo Test"
+  description: "Basic test of visual servoing with AprilTag correction"
+  version: "1.0"
+  author: "Robot System Tools"
+
+steps:
+  # Step 1: Move to home position
+  - action: movel
+    position: home
+    speed: 0.2
+    description: "Move to safe home position"
+
+  # Step 2: Regular move to a position (no visual servo)
+  - action: movel
+    position: test_position
+    speed: 0.1
+    description: "Move to test position using stored coordinates"
+
+  # Step 3: Wait briefly
+  - action: delay
+    duration: 1.0
+    description: "Wait for robot to settle"
+
+  # Step 4: Visual servo to the same position (should correct for any drift)
+  - action: visual_servo
+    position: test_position
+    speed: 0.05
+    type: movel
+    description: "Visual servo to same position with AprilTag correction"
+
+  # Step 5: Test regular move with visual servo flag
+  - action: movel
+    position: test_position_2
+    speed: 0.1
+    visual_servo: true
+    description: "Move to second position with inline visual servo correction"
+
+  # Step 6: Return to home
+  - action: movel
+    position: home
+    speed: 0.2
+    description: "Return to home position"
+
+# Workflow settings
+settings:
+  safe_mode: true
+  step_by_step: true  # Enable step-by-step for testing
+  log_poses: true
+  emergency_stop_on_error: true

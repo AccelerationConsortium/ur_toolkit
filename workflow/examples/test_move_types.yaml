@@ -1,0 +1,25 @@
+name: "Move Type Test"
+description: "Test both linear (moveL) and joint (moveJ) moves"
+
+steps:
+  - {action: "moveJ", position: "safe-home"}
+  - {action: "gripper_activate"}
+  - {action: "gripper_open"}
+  
+  # Linear move to approach position
+  - {action: "moveL", position: "grasp-A-safe", speed: 0.1}
+  
+  # Joint move to final position (faster but curved path)
+  - {action: "moveJ", position: "grasp-A", speed: 0.1}
+  
+  # Linear move for precise approach (straight line)
+  - {action: "moveL", position: "grasp-A", speed: 0.05}
+  
+  - {action: "gripper_close"}
+  - {action: "delay", duration: 1.0}
+  
+  # Joint move to lift (faster for large movements)
+  - {action: "moveJ", position: "grasp-A-safe", speed: 0.1}
+  
+  # Joint move back home (fastest path)
+  - {action: "moveJ", position: "safe-home"}

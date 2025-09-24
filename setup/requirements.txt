@@ -1,0 +1,25 @@
+# Robot System Tools - Complete Requirements
+# All dependencies for robot vision system
+
+# Core dependencies
+numpy>=1.21.0
+opencv-python>=4.5.0
+PyYAML>=6.0
+
+# Robot control
+ur-rtde>=1.5.5
+
+# Robot Vision and AprilTag detection
+pupil-apriltags>=1.0.4
+scipy>=1.7.0
+matplotlib>=3.5.0
+
+# Camera system (Pi only - install separately on Pi)
+# picamera2  # Install on Pi: pip install picamera2
+
+# Development and testing
+pytest>=7.0.0
+pytest-cov>=4.0.0
+
+# Optional utilities
+click>=8.0.0  # For CLI interfaces

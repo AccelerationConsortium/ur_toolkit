@@ -1,0 +1,44 @@
+name: "Pick and Place Demo"
+description: "Pick from grasp-A, place at grasp-B"
+
+steps:
+  - {action: "moveL", position: "safe-home"}
+  - {action: "gripper_activate"}
+  - {action: "gripper_open"}
+  - {action: "delay", duration: 1.0}
+  
+  # Pick from grasp-A
+  - {action: "moveL", position: "grasp-A-safe", speed: 0.1}
+  - {action: "moveL", position: "grasp-A", speed: 0.05}
+  - {action: "gripper_close"}
+  - {action: "delay", duration: 1.0}
+  - {action: "offset_move", offset: [0, 0, 0.02, 0, 0, 0]}
+  
+  # Move to observation
+  - {action: "moveL", position: "observe-B"}
+  - {action: "delay", duration: 2.0}
+  
+  # Place at grasp-B
+  - {action: "moveL", position: "grasp-B-safe", speed: 0.1}
+  - {action: "moveL", position: "grasp-B", speed: 0.05}
+  - {action: "gripper_open"}
+  - {action: "delay", duration: 1.0}
+  - {action: "offset_move", offset: [0, 0, 0.02, 0, 0, 0]}
+  
+  # Return home
+  - {action: "moveL", position: "safe-home"}
+
+# Optional: Workflow validation
+validation:
+  required_positions:
+    - "safe-home"
+    - "grasp-A" 
+    - "grasp-B"
+    - "observe-B"
+    - "grasp-B-safe"
+    - "grasp-A-safe"
+  
+  safety_checks:
+    - "gripper_operational"
+    - "robot_remote_mode"
+    - "emergency_stop_clear"
