@@ -7,14 +7,10 @@ Quick script to run robot workflows
 import sys
 from pathlib import Path
 
-# Add parent directory to path for imports
-sys.path.insert(0, str(Path(__file__).parent.parent))
+# Add src directory to path for ur_toolkit imports
+sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-try:
-    from .workflow_executor import WorkflowExecutor
-except ImportError:
-    # For direct execution
-    from workflow_executor import WorkflowExecutor
+from ur_toolkit.workflow.workflow_executor import WorkflowExecutor
 
 
 def run_sample_workflow(step_mode=False):
@@ -38,7 +34,7 @@ def run_sample_workflow(step_mode=False):
 
     try:
         # Load and execute sample workflow
-        workflow_file = Path(__file__).parent / "sample_workflow.yaml"
+        workflow_file = Path(__file__).parent.parent / "examples" / "workflows" / "sample_workflow.yaml"
 
         if not workflow_file.exists():
             print(f"❌ Sample workflow not found: {workflow_file}")

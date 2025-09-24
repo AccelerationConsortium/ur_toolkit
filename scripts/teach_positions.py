@@ -14,21 +14,13 @@ import numpy as np
 
 import sys
 
-# Add parent directory and setup directory to path
-sys.path.insert(0, str(Path(__file__).parent.parent))
-sys.path.insert(0, str(Path(__file__).parent.parent / "setup"))
+# Add src directory to path for ur_toolkit imports
+sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from config_manager import config, get_robot_ip, get_camera_host, get_camera_port
-
-# Import robot and detection modules
-from robots.ur.ur_controller import URController
-from apriltag_detection import AprilTagDetector
-
-# Add camera module to Python path
-import sys
-import os
-sys.path.append(os.path.join(os.path.dirname(__file__), 'camera'))
-from picam import PiCam, PiCamConfig
+from ur_toolkit.config_manager import config, get_robot_ip, get_camera_host, get_camera_port
+from ur_toolkit.robots.ur.ur_controller import URController
+from ur_toolkit.apriltag_detection import AprilTagDetector
+from ur_toolkit.camera.picam.picam import PiCam, PiCamConfig
 
 
 class PositionTeacher:

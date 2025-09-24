@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+- **🏗️ Major Project Restructure** - Migrated to `src/` layout for better packaging and development
+  - Moved all source code to `src/ur_toolkit/`
+  - Moved executable scripts to `scripts/`
+  - Moved configuration files to `config/`
+  - Moved documentation to `docs/` (renamed from `documentation/`)
+  - Moved workflow examples to `examples/workflows/`
+  - Updated all import paths to use `ur_toolkit.` prefix
+  - Created proper `pyproject.toml` for modern Python packaging
+  - Updated README.md with new structure and corrected paths
+- **Pi Camera Server** - Kept as separate deployment component outside src/ structure
+
 ### Added
 - **Comprehensive Code Cleanup** - Fixed all flake8 linting errors across the entire codebase (reduced from 336 to 0 errors)
 - **File-by-File Code Cleanup** - Systematically cleaned up individual files including ur_controller.py, config_manager.py, and entire visual_servo/ folder (config.py, detection_filter.py, pose_history.py, visual_servo_engine.py)

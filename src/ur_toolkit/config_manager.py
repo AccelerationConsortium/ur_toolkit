@@ -155,7 +155,11 @@ class ConfigManager:
 
         # Special handling for positions files
         if relative_path == 'taught_positions.yaml':
-            # First try positions directory
+            # First try new src structure
+            src_positions_path = project_root / "src" / "ur_toolkit" / "positions" / relative_path
+            if src_positions_path.exists():
+                return src_positions_path
+            # Try old positions directory for backwards compatibility
             positions_path = project_root / "positions" / relative_path
             if positions_path.exists():
                 return positions_path
@@ -163,8 +167,8 @@ class ConfigManager:
             setup_path = project_root / "setup" / relative_path
             if setup_path.exists():
                 return setup_path
-            # Default to positions directory even if file doesn't exist yet
-            return positions_path
+            # Default to src positions directory even if file doesn't exist yet
+            return src_positions_path
 
         return project_root / relative_path
 

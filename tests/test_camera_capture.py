@@ -6,17 +6,13 @@ Tests connection and captures a photo using the centralized config.yaml or comma
 
 import argparse
 import sys
-import os
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'camera', 'picam'))
-from picam import PiCam, PiCamConfig
-import sys
 from pathlib import Path
 
-# Add setup directory to path
-sys.path.insert(0, str(Path(__file__).parent.parent / "setup"))
+# Add src directory to path for ur_toolkit imports
+sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from config_manager import get_camera_host, get_camera_port
+from ur_toolkit.camera.picam.picam import PiCam, PiCamConfig
+from ur_toolkit.config_manager import get_camera_host, get_camera_port
 
 
 def main():

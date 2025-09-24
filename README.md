@@ -1,298 +1,136 @@
-# Robot System Tools# Robot System Tools# Robot System Tools# Robot System Tools# Robot System Tools
-
-
+# UR Toolkit
 
 A comprehensive Python toolkit for robot control, computer vision, and workflow automation with Universal Robots.
 
+## 🚀 Quick Start
 
-
-## Quick StartA comprehensive Python toolkit for robot control, computer vision, and workflow automation with Universal Robots.
-
-
-
-### Position Teaching
-
+### 1. Setup
 ```bash
+# Clone the repository
+git clone https://github.com/AccelerationConsortium/ur_toolkit.git
+cd ur_toolkit
 
-python positions/teach_positions.py## Quick StartA comprehensive Python toolkit for robot control, computer vision, and workflow automation with Universal Robots.
-
+# Set up virtual environment with all dependencies
+bash setup/setup_venv.sh
 ```
 
+### 2. Position Teaching
+```bash
+python scripts/teach_positions.py
+```
 Interactive tool for teaching and managing robot positions with remote freedrive capability.
 
-
-
-### Workflow Execution### Position Teaching
-
+### 3. Workflow Execution
 ```bash
-
-# Run sample workflow```bash
-
-python workflow/run_workflow.py
-
-python teach_positions.py## Quick StartA comprehensive Python toolkit for robot control, computer vision, and workflow automation with Universal Robots.Complete robot vision system with UR robot control, camera capture, and AprilTag detection.
+# Run sample workflow
+python scripts/run_workflow.py
 
 # Run custom workflow
+python scripts/run_workflow.py examples/workflows/sample_workflow.yaml
+```
+Complete robot vision system with UR robot control, camera capture, and AprilTag detection.
 
-python workflow/run_workflow.py workflow/examples/sample_workflow.yaml```
+## 📁 Project Structure
 
 ```
-
-Interactive tool for teaching and managing robot positions with remote freedrive capability.
-
-## Project Structure
-
-
-
+ur_toolkit/
+├── src/
+│   └── ur_toolkit/           # Main Python package
+│       ├── camera/           # Camera interface modules
+│       ├── robots/           # Robot-specific implementations
+│       ├── workflow/         # Workflow execution system
+│       ├── visual_servo/     # Visual servoing engine
+│       ├── positions/        # Position management
+│       ├── camera_calibration/ # Camera calibration tools
+│       ├── apriltag_detection.py # AprilTag detection
+│       └── config_manager.py # Configuration management
+├── scripts/                  # Executable CLI scripts
+│   ├── teach_positions.py    # Interactive position teaching
+│   └── run_workflow.py       # Workflow runner
+├── config/                   # Configuration files
+│   └── config.yaml           # System configuration
+├── examples/                 # Example workflows
+│   └── workflows/            # Sample workflow YAML files
+├── docs/                     # Documentation
+├── tests/                    # Test files
+├── pi_cam_server/           # Camera server (separate deployment)
+└── setup/                   # Setup and installation scripts
 ```
 
-├── workflow/                  # Workflow execution system### Workflow Execution### Position Teaching
+## ✨ Key Features
 
-│   ├── examples/             # Sample workflow YAML files
-
-│   ├── workflow_executor.py  # Core workflow execution engine```bash
-
-│   └── run_workflow.py       # CLI workflow runner
-
-├── positions/                # Robot position files# Run sample workflow```bash
-
-│   ├── taught_positions.yaml # Saved robot positions
-
-│   └── teach_positions.py    # Interactive position teaching toolpython workflow/run_workflow.py
-
-├── setup/                    # Project setup and configuration
-
-│   ├── config.yaml           # System configurationpython teach_positions.py## Quick Start## 🚀 Quick Start
-
-│   ├── config_manager.py     # Configuration management
-
-│   ├── requirements.txt      # Python dependencies# Run custom workflow
-
-│   └── setup_venv.sh         # Virtual environment setup script
-
-├── documentation/            # Detailed documentationpython workflow/run_workflow.py workflow/examples/sample_workflow.yaml```
-
-│   └── CHANGELOG.md          # Project changelog
-
-├── camera/                   # Camera interface modules```
-
-├── camera_calibration/       # Camera calibration tools
-
-├── robots/                   # Robot-specific implementationsInteractive tool for teaching and managing robot positions with remote freedrive capability.
-
-└── tests/                    # Test files
-
-```## Project Structure
-
-
-
-## Key Features
-
-
-
-- **Interactive Position Teaching** - Remote freedrive with automatic safe offset positioning```
-
+- **Interactive Position Teaching** - Remote freedrive with automatic safe offset positioning
 - **YAML Workflow System** - Sequential robot operations with step-by-step execution
-
-- **AprilTag Integration** - Computer vision-based positioning and calibration├── workflow/                  # Workflow execution system### Workflow Execution### Position Teaching### 1. Virtual Environment Setup
-
+- **AprilTag Integration** - Computer vision-based positioning and calibration
 - **Camera Calibration** - Tools for camera intrinsic calibration
+- **Robot Control** - Universal Robots interface with gripper support
+- **Visual Servoing** - PID-based iterative pose correction
 
-- **Robot Control** - Universal Robots interface with gripper support│   ├── examples/             # Sample workflow YAML files
+## 📚 Documentation
 
+See the `docs/` directory for detailed guides:
 
+- [Workflow System](docs/WORKFLOW_SYSTEM.md) - Complete workflow usage guide
+- [Position Teaching](docs/POSITION_TEACHING.md) - Position teaching workflow
+- [AprilTag Workflow](docs/APRILTAG_WORKFLOW.md) - Computer vision integration
+- [Configuration Guide](docs/CONFIGURATION_GUIDE.md) - System setup and config
+- [Changelog](docs/CHANGELOG.md) - Project change history
 
-## Documentation│   ├── workflow_executor.py  # Core workflow execution engine```bash
+## 🔧 Requirements
 
+See `setup/requirements.txt` for Python dependencies. Compatible with Universal Robots and Robotiq grippers.
 
+## 🚀 Usage Examples
 
-See the `documentation/` directory for detailed guides:│   └── run_workflow.py       # CLI workflow runner
+### Basic Position Teaching
+```bash
+# Start interactive position teaching
+python scripts/teach_positions.py
 
+# Teach positions for AprilTag ID 5
+python scripts/teach_positions.py --tag-id 5
+```
 
+### Running Workflows
+```bash
+# Execute a specific workflow file
+python scripts/run_workflow.py examples/workflows/visual_servo_test.yaml
 
-- [Workflow System](documentation/WORKFLOW_SYSTEM.md) - Complete workflow usage guide├── positions/                # Robot position files# Run sample workflow```bash
+# Run in step-by-step mode
+python scripts/run_workflow.py examples/workflows/sample_workflow.yaml --step-mode
+```
 
-- [Position Teaching](documentation/POSITION_TEACHING.md) - Position teaching workflow
+### Configuration
 
-- [AprilTag Workflow](documentation/APRILTAG_WORKFLOW.md) - Computer vision integration│   └── taught_positions.yaml # Saved robot positions
+**Configure the system using the unified configuration file** `config/config.yaml`:
 
-- [Configuration Guide](documentation/CONFIGURATION_GUIDE.md) - System setup and config
-
-- [Changelog](documentation/CHANGELOG.md) - Project change history├── config/                   # Configuration filespython workflow/run_workflow.py
-
-
-
-## Requirements│   └── config.yaml           # System configuration
-
-
-
-See `setup/requirements.txt` for Python dependencies. Compatible with Universal Robots and Robotiq grippers.├── camera/                   # Camera interface modulespython teach_positions.py**First, set up the complete virtual environment** (required for all components):
-
-├── camera_calibration/       # Camera calibration tools
-
-├── robots/                   # Robot-specific implementations# Run custom workflow
-
-├── documentation/            # Detailed documentation
-
-├── tests/                    # Test filespython workflow/run_workflow.py workflow/examples/sample_workflow.yaml```
-
-└── teach_positions.py        # Interactive position teaching
-
-``````
-
-
-
-## Key FeaturesInteractive tool for teaching and managing robot positions with remote freedrive capability.```bash
-
-
-
-- **Interactive Position Teaching** - Remote freedrive with automatic safe offset positioning## Project Structure
-
-- **YAML Workflow System** - Sequential robot operations with step-by-step execution
-
-- **AprilTag Integration** - Computer vision-based positioning and calibration# Clone the repo
-
-- **Camera Calibration** - Tools for camera intrinsic calibration
-
-- **Robot Control** - Universal Robots interface with gripper support```
-
-
-
-## Documentation├── workflow/                  # Workflow execution system### Workflow Executiongit clone https://github.com/kelvinchow23/robot_system_tools.git
-
-
-
-See the `documentation/` directory for detailed guides:│   ├── examples/             # Sample workflow YAML files
-
-
-
-- [Workflow System](documentation/WORKFLOW_SYSTEM.md) - Complete workflow usage guide│   ├── workflow_executor.py  # Core workflow execution engine```bashcd robot_system_tools
-
-- [Position Teaching](documentation/POSITION_TEACHING.md) - Position teaching workflow
-
-- [AprilTag Workflow](documentation/APRILTAG_WORKFLOW.md) - Computer vision integration│   └── run_workflow.py       # CLI workflow runner
-
-- [Configuration Guide](documentation/CONFIGURATION_GUIDE.md) - System setup and config
-
-├── camera/                   # Camera interface modules# Run sample workflow
-
-## Requirements
-
-├── camera_calibration/       # Camera calibration tools
-
-See `requirements.txt` for Python dependencies. Compatible with Universal Robots and Robotiq grippers.
-├── robots/                   # Robot-specific implementationspython workflow/run_workflow.py# Set up virtual environment with all dependencies
-
-├── documentation/            # Detailed documentation
-
-├── tests/                    # Test files./setup_venv.sh
-
-├── teach_positions.py        # Interactive position teaching
-
-├── config.yaml              # System configuration# Run custom workflow
-
-└── taught_positions.yaml    # Saved robot positions
-
-```python workflow/run_workflow.py workflow/examples/sample_workflow.yaml# Activate the environment
-
-
-
-## Key Features```source venv/bin/activate
-
-
-
-- **Interactive Position Teaching** - Remote freedrive with automatic safe offset positioning```
-
-- **YAML Workflow System** - Sequential robot operations with step-by-step execution
-
-- **AprilTag Integration** - Computer vision-based positioning and calibration## Project Structure
-
-- **Camera Calibration** - Tools for camera intrinsic calibration
-
-- **Robot Control** - Universal Robots interface with gripper supportThis installs dependencies for:
-
-
-
-## Documentation```- UR Robot control (RTDE)
-
-
-
-See the `documentation/` directory for detailed guides:├── workflow/                  # Workflow execution system- Camera systems (OpenCV, Pi Camera)  
-
-
-
-- [Workflow System](documentation/WORKFLOW_SYSTEM.md) - Complete workflow usage guide│   ├── examples/             # Sample workflow YAML files- AprilTag detection
-
-- [Position Teaching](documentation/POSITION_TEACHING.md) - Position teaching workflow
-
-- [AprilTag Workflow](documentation/APRILTAG_WORKFLOW.md) - Computer vision integration│   ├── workflow_executor.py  # Core workflow execution engine- Development tools
-
-- [Configuration Guide](documentation/CONFIGURATION_GUIDE.md) - System setup and config
-
-│   └── run_workflow.py       # CLI workflow runner
-
-## Requirements
-
-├── camera/                   # Camera interface modules### 2. Configuration
-
-See `requirements.txt` for Python dependencies. Compatible with Universal Robots and Robotiq grippers.
-├── camera_calibration/       # Camera calibration tools
-
-├── robots/                   # Robot-specific implementations**Configure the system using the unified configuration file** `config.yaml`:
-
-├── documentation/            # Detailed documentation
-
-├── tests/                    # Test files```yaml
-
-├── teach_positions.py        # Interactive position teaching# Robot Configuration
-
-├── config.yaml              # System configurationrobot:
-
-└── taught_positions.yaml    # Saved robot positions  ip_address: "192.168.0.10"  # Your UR robot IP
-
-```  default_speed: 0.03
-
+```yaml
+# Robot Configuration
+robot:
+  ip_address: "192.168.0.10"  # Your UR robot IP
+  default_speed: 0.03
   default_acceleration: 0.08
 
-## Key Features
-
 # Camera Configuration  
-
-- **Interactive Position Teaching** - Remote freedrive with automatic safe offset positioningcamera:
-
-- **YAML Workflow System** - Sequential robot operations with step-by-step execution  server:
-
-- **AprilTag Integration** - Computer vision-based positioning and calibration    host: "192.168.1.100"  # Your Pi camera IP
-
-- **Camera Calibration** - Tools for camera intrinsic calibration    port: 2222
-
-- **Robot Control** - Universal Robots interface with gripper support
+camera:
+  server:
+    host: "192.168.1.100"  # Your Pi camera IP
+    port: 2222
 
 # AprilTag Configuration
-
-## Documentationapriltag:
-
+apriltag:
   family: "tag36h11"
-
-See the `documentation/` directory for detailed guides:  tag_size: 0.023  # 23mm tags
-
+  tag_size: 0.023  # 23mm tags
 ```
 
-- [Workflow System](documentation/WORKFLOW_SYSTEM.md) - Complete workflow usage guide
+See [`docs/CONFIGURATION_GUIDE.md`](docs/CONFIGURATION_GUIDE.md) for complete configuration options.
 
-- [Position Teaching](documentation/POSITION_TEACHING.md) - Position teaching workflowSee [`documentation/CONFIGURATION_GUIDE.md`](documentation/CONFIGURATION_GUIDE.md) for complete configuration options.
+### Pi Camera Server Setup
 
-- [AprilTag Workflow](documentation/APRILTAG_WORKFLOW.md) - Computer vision integration
-
-- [Configuration Guide](documentation/CONFIGURATION_GUIDE.md) - System setup and config### 3. Pi Camera Server Setup (One Command)
-
-
-
-## RequirementsOn your Raspberry Pi, run:
+On your Raspberry Pi, run:
 
 ```bash
-
-See `requirements.txt` for Python dependencies. Compatible with Universal Robots and Robotiq grippers.curl -sSL https://raw.githubusercontent.com/kelvinchow23/robot_system_tools/master/pi_cam_server/install.sh | bash
+curl -sSL https://raw.githubusercontent.com/AccelerationConsortium/ur_toolkit/main/pi_cam_server/install.sh | bash
 ```
 
 This will:
@@ -302,7 +140,7 @@ This will:
 - Enable auto-start on boot
 - Start the service immediately
 
-### 4. Client Setup
+### Client Setup
 
 After setting up the virtual environment and configuration:
 
@@ -310,13 +148,10 @@ After setting up the virtual environment and configuration:
 # Activate environment (if not already active)
 source venv/bin/activate
 
-# Configure your Pi's IP address
-# Edit camera_client_config.yaml and set your Pi's IP
-
 # Test the camera connection
 python tests/test_camera_capture.py
 
-# Test UR robot connection (update IP in robots/ur/robot_config.yaml)
+# Test UR robot connection
 python tests/test_ur_robot.py --robot-ip 192.168.0.10
 
 # Test AprilTag detection
@@ -328,10 +163,10 @@ python tests/test_apriltag_detection.py
 ### 1. Camera Capture
 
 ```python
-from camera.picam.picam import PiCam, PiCamConfig
+from ur_toolkit.camera.picam.picam import PiCam, PiCamConfig
 
 # Load config and capture photo
-config = PiCamConfig.from_yaml("camera_client_config.yaml")
+config = PiCamConfig.from_yaml("config/config.yaml")
 cam = PiCam(config)
 photo_path = cam.capture_photo()
 
@@ -342,7 +177,7 @@ if photo_path:
 ### 2. AprilTag Detection
 
 ```python
-from apriltag_detection import AprilTagDetector
+from ur_toolkit.apriltag_detection import AprilTagDetector
 
 # Initialize detector
 detector = AprilTagDetector(
@@ -365,10 +200,10 @@ for detection in detections:
 ### 3. Robot Control
 
 ```python
-from robots.ur.ur_robot_interface import URRobotInterface
+from ur_toolkit.robots.ur.ur_controller import URController
 
 # Connect to robot
-robot = URRobotInterface('192.168.0.10')
+robot = URController('192.168.0.10')
 
 # Get current pose
 current_pose = robot.get_tcp_pose()
@@ -385,36 +220,32 @@ robot.move_to_pose(new_pose)
 For accurate AprilTag pose estimation:
 
 ```bash
-# 1. Print the calibration chessboard (8x6 external corners, 30mm squares)
-# Use: camera_calibration/Calibration chessboard (US Letter).pdf
-# Print at 100% scale, mount on rigid surface
-
-# 2. Capture 10+ calibration photos
-cd camera_calibration
-python capture_calibration_photos.py
+# 1. Print the calibration chessboard pattern
+# 2. Capture calibration photos  
+python src/ur_toolkit/camera_calibration/capture_calibration_photos.py
 
 # 3. Calculate camera intrinsics
-python calculate_camera_intrinsics.py
-
-# 4. Verify calibration quality
-# Check camera_calibration.yaml for low reprojection error (<0.5 pixels)
+python src/ur_toolkit/camera_calibration/calculate_camera_intrinsics.py
 ```
 
-## 📁 File Structure
+## 🏗️ Development
 
+The project uses a `src/` layout for better packaging and testing:
+
+- **Source code** is in `src/ur_toolkit/`
+- **Executable scripts** are in `scripts/`
+- **Configuration** is in `config/`
+- **Examples** are in `examples/`
+- **Tests** import from installed package for accuracy
+
+For development installations:
+```bash
+pip install -e .
 ```
-robot_system_tools/
-├── .github/
-│   └── copilot-instructions.md      # Development practices for Copilot
-├── documentation/
-│   ├── ARCHITECTURE.md              # System architecture
-│   └── CHANGELOG.md                 # Project changelog
-├── camera/
-│   └── picam/                       # Pi camera client
-│       ├── picam.py                 # Camera client library
-│       └── setup_picam_client.sh    # Client setup script
-├── robots/
-│   └── ur/                          # Universal Robots interface
+
+## 📝 License
+
+See LICENSE file for details.
 │       └── ur_robot_interface.py    # RTDE-based UR interface
 ├── tests/                           # Test scripts
 │   ├── test_camera_capture.py       # Basic camera test

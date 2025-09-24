@@ -7,9 +7,12 @@ Tests connection and allows basic joint movement
 import numpy as np
 import argparse
 import sys
-import os
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'robots', 'ur'))
-from robots.ur.ur_controller import URController
+from pathlib import Path
+
+# Add src directory to path for ur_toolkit imports
+sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+
+from ur_toolkit.robots.ur.ur_controller import URController
 
 
 def test_ur_robot(robot_ip):

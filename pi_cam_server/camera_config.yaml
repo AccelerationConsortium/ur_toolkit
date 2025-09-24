@@ -1,0 +1,55 @@
+# Pi Camera Server Configuration
+# Settings for the camera server application
+
+# Server settings
+server:
+  port: 2222
+  photo_directory: "photos"
+  log_level: "INFO"
+
+# Camera settings
+camera:
+  # Rotation in degrees (0, 90, 180, 270)
+  rotation: 180
+  
+  # Image format and quality
+  image_format: "jpeg"
+  image_quality: 85
+  
+  # Camera resolution (width, height)
+  # Common resolutions:
+  # - [640, 480]   - VGA
+  # - [1280, 720]  - 720p HD
+  # - [1920, 1080] - 1080p Full HD
+  # - [2592, 1944] - Pi Camera v1 max
+  # - [3280, 2464] - Pi Camera v2 max
+  # - [4608, 2592] - Pi Camera v3 max (16:9)
+  resolution: [1920, 1080]
+  
+  # Focus mode for autofocus cameras
+  # Options: "auto", "manual", "continuous"
+  focus_mode: "auto"
+  
+  # Exposure settings
+  # exposure_mode: "auto"  # auto, manual, sports, night, etc.
+  # exposure_compensation: 0  # -25 to +25
+  
+  # White balance
+  # awb_mode: "auto"  # auto, daylight, cloudy, tungsten, fluorescent, etc.
+
+# Advanced camera settings (optional)
+# advanced:
+#   # Flip image horizontally
+#   hflip: false
+#   
+#   # Flip image vertically  
+#   vflip: false
+#   
+#   # Brightness (-100 to 100)
+#   brightness: 0
+#   
+#   # Contrast (-100 to 100)
+#   contrast: 0
+#   
+#   # Saturation (-100 to 100)
+#   saturation: 0
