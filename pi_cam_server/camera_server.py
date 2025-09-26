@@ -6,7 +6,6 @@ Minimal camera server for Raspberry Pi deployment
 
 import socket
 import threading
-import time
 import os
 import yaml
 import logging
@@ -20,6 +19,7 @@ try:
 except ImportError:
     print("❌ picamera2 not available")
     CAMERA_AVAILABLE = False
+
 
 class SimpleCameraConfig:
     """Simple camera configuration"""
@@ -72,6 +72,7 @@ class SimpleCameraConfig:
         except Exception as e:
             print(f"⚠️  Could not load config from {config_path}: {e}")
         return config
+
 
 class SimpleCameraServer:
     """Simple camera server for Pi"""
@@ -267,6 +268,7 @@ class SimpleCameraServer:
             self.camera.close()
         print("🛑 Camera server stopped")
 
+
 def setup_logging(log_level: str = "INFO"):
     """Setup logging for Pi deployment"""
     log_dir = Path("logs")
@@ -280,6 +282,7 @@ def setup_logging(log_level: str = "INFO"):
             logging.StreamHandler()
         ]
     )
+
 
 def load_config():
     """Load configuration for Pi server"""
@@ -297,6 +300,7 @@ def load_config():
 
     print("📝 Using default configuration")
     return SimpleCameraConfig()
+
 
 def main():
     """Main function"""
@@ -332,6 +336,7 @@ def main():
     except KeyboardInterrupt:
         print("\n🛑 Stopping server...")
         server.stop_server()
+
 
 if __name__ == "__main__":
     main()

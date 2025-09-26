@@ -1,7 +1,7 @@
 #!/bin/bash
 # Pi Camera Server One-Command Installer
 # For fresh Raspberry Pi OS (Debian Bookworm)
-# Usage: curl -sSL https://raw.githubusercontent.com/kelvinchow23/robot_system_tools/master/install.sh | bash
+# Usage: curl -sSL https://raw.githubusercontent.com/AccelerationConsortium/ur_toolkit/main/pi_cam_server/install.sh | bash
 
 set -e
 
@@ -32,7 +32,7 @@ CURRENT_USER=$(whoami)
 USER_HOME=$(eval echo ~$CURRENT_USER)
 
 # Clone repository to user's home directory
-REPO_DIR="$USER_HOME/robot_system_tools"
+REPO_DIR="$USER_HOME/ur_toolkit"
 if [ -d "$REPO_DIR" ]; then
     echo "📂 Repository already exists, updating..."
     cd "$REPO_DIR"
@@ -40,7 +40,7 @@ if [ -d "$REPO_DIR" ]; then
 else
     echo "📂 Cloning repository to $REPO_DIR..."
     cd "$USER_HOME"
-    git clone https://github.com/kelvinchow23/robot_system_tools.git
+    git clone https://github.com/AccelerationConsortium/ur_toolkit.git
 fi
 
 # Run the setup script
