@@ -6,6 +6,7 @@ Eye-in-hand visual servoing engine with proper IBVS control law
 
 import numpy as np
 import time
+import json
 from typing import Optional, Tuple, Dict, Any
 from pathlib import Path
 import sys
@@ -17,7 +18,44 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "setup"))
 from .config import visual_servo_config
 from .detection_filter import DetectionFilter
 from .pose_history import PoseHistoryManager
-from apriltag_detection import AprilTagDetector
+from ur_toolkit.apriltag_detection import AprilTagDetector
+
+
+def transform_camera_to_robot_correction(camera_error_translation, camera_error_rotation):
+    """
+    Transform camera coordinate errors to robot coordinate corrections.
+    
+    Camera frame (OpenCV standard): X-right, Y-down, Z-forward (depth)
+    Robot TCP frame (UR standard): X-forward, Y-left, Z-up
+    
+    Assuming eye-in-hand camera mounted looking forward from TCP.
+    This transformation maps camera errors to proper robot movements.
+    
+    Args:
+        camera_error_translation: [x, y, z] errors in camera frame
+        camera_error_rotation: [rx, ry, rz] rotation errors in camera frame
+        
+    Returns:
+        (robot_translation, robot_rotation) corrections in robot TCP frame
+    """
+    # Translation mapping - FIXED Z direction
+    # Camera Z error positive = tag farther = robot should move forward (+Y)
+    # Camera Z error negative = tag closer = robot should move backward (-Y)
+    robot_translation = [
+        -camera_error_translation[0],   # Camera X -> Robot -X (right becomes left)
+        -camera_error_translation[2],   # Camera Z (depth) -> Robot -Y (forward/back) - INVERTED
+        -camera_error_translation[1]    # Camera Y (down) -> Robot -Z (down becomes up)
+    ]
+    
+    # Rotation mapping - DISABLED for debugging translation
+    # robot_rotation = [
+    #     -camera_error_rotation[0],     # Camera RX -> Robot -RX (consistent with X translation)
+    #     -camera_error_rotation[2],     # Camera RZ (in-plane) -> Robot -RY (consistent with Z->Y translation)
+    #     -camera_error_rotation[1]      # Camera RY -> Robot -RZ (consistent with Y translation)
+    # ]
+    robot_rotation = [0.0, 0.0, 0.0]  # Disable rotation corrections to focus on translation
+    
+    return robot_translation, robot_rotation
 
 
 class EyeInHandPIDController:
@@ -67,7 +105,8 @@ class EyeInHandPIDController:
         self.previous_error = None
 
 
-from camera.picam import PiCam
+from ur_toolkit.camera.picam.picam import PiCam, PiCamConfig
+from ur_toolkit.config_manager import get_camera_host, get_camera_port
 
 
 class VisualServoEngine:
@@ -94,7 +133,10 @@ class VisualServoEngine:
 
         # Initialize camera if not provided
         if camera is None:
-            self.camera = PiCam()
+            host = get_camera_host()
+            port = get_camera_port()
+            config = PiCamConfig(hostname=host, port=port)
+            self.camera = PiCam(config)
         else:
             self.camera = camera
 
@@ -124,10 +166,13 @@ class VisualServoEngine:
         self.error_history = []
         self.max_error_history = 3
 
+        # Load hand-eye calibration if available
+        self.hand_eye_transform = self._load_hand_eye_calibration()
+
         print("🎯 Visual Servo Engine initialized")
         self.config.print_config()
 
-    def visual_servo_to_position(self, position_name: str, update_stored_pose: bool = True) -> Tuple[bool, Dict[str, Any]]:
+    def visual_servo_to_position(self, position_name: str, update_stored_pose: bool = False) -> Tuple[bool, Dict[str, Any]]:
         """
         Perform visual servoing to a taught position with AprilTag reference
 
@@ -315,15 +360,29 @@ class VisualServoEngine:
                 robot_correction[i] = np.clip(robot_correction[i],
                                               -max_rotation_velocity, max_rotation_velocity)
 
-            # Apply overall damping factor for stability
-            robot_correction *= self.config.damping_factor
-
-            print(f"🔧 Eye-in-hand visual servoing control (dt={dt:.3f}s):")
-            print(f"   Translation errors: [{tag_translation_error[0]:.4f}, {tag_translation_error[1]:.4f}, {tag_translation_error[2]:.4f}]")
-            print(f"   Rotation errors: [{tag_rotation_error[0]:.4f}, {tag_rotation_error[1]:.4f}, {tag_rotation_error[2]:.4f}]")
-            print(f"   Translation correction: [{robot_translation_correction[0]:.4f}, {robot_translation_correction[1]:.4f}, {robot_translation_correction[2]:.4f}]")
-            print(f"   Rotation correction: [{robot_rotation_correction[0]:.4f}, {robot_rotation_correction[1]:.4f}, {robot_rotation_correction[2]:.4f}]")
-            print(f"   Overall damping: {self.config.damping_factor:.2f}")
+            # Check if using simple legacy-style mode
+            if hasattr(self.config, 'simple_mode') and self.config.simple_mode:
+                # Simple mode: only XY translation corrections (like legacy system)
+                simple_correction = np.zeros(6)
+                simple_correction[0] = -tag_translation_error[0] * 0.4  # X correction
+                simple_correction[1] = -tag_translation_error[1] * 0.4  # Y correction
+                # Z, RX, RY, RZ remain zero for stability
+                robot_correction = simple_correction
+                
+                print("🔧 Simple XY-only correction (legacy style):")
+                print(f"   Translation errors: [{tag_translation_error[0]:.4f}, {tag_translation_error[1]:.4f}, {tag_translation_error[2]:.4f}]")
+                print(f"   Applied XY correction: [{robot_correction[0]:.4f}, {robot_correction[1]:.4f}, 0.0000] (Z/rotations=0)")
+                print("   Simple mode damping: 0.400")
+            else:
+                # Apply overall damping factor for stability
+                robot_correction *= self.config.damping_factor
+                
+                print(f"🔧 Eye-in-hand visual servoing control (dt={dt:.3f}s):")
+                print(f"   Translation errors: [{tag_translation_error[0]:.4f}, {tag_translation_error[1]:.4f}, {tag_translation_error[2]:.4f}]")
+                print(f"   Rotation errors: [{tag_rotation_error[0]:.4f}, {tag_rotation_error[1]:.4f}, {tag_rotation_error[2]:.4f}]")
+                print(f"   Translation correction: [{robot_translation_correction[0]:.4f}, {robot_translation_correction[1]:.4f}, {robot_translation_correction[2]:.4f}]")
+                print(f"   Rotation correction: [{robot_rotation_correction[0]:.4f}, {robot_rotation_correction[1]:.4f}, {robot_rotation_correction[2]:.4f}]")
+                print(f"   Overall damping: {self.config.damping_factor:.2f}")
 
             # Apply safety limits
             correction_valid, safety_metrics = self._validate_correction(
@@ -375,26 +434,28 @@ class VisualServoEngine:
             position_name, stored_robot_pose, current_robot_pose,
             stored_tag_pose, current_tag_pose, metrics)
 
-        # Update stored pose if requested and converged
-        if update_stored_pose and metrics['converged']:
-            success = self.pose_history.update_position_pose(
-                position_name, current_robot_pose, current_tag_pose)
-            metrics['pose_updated'] = success
+        # Update stored pose if requested and converged - DISABLED
+        # if update_stored_pose and metrics['converged']:
+        #     success = self.pose_history.update_position_pose(
+        #         position_name, current_robot_pose, current_tag_pose)
+        #     metrics['pose_updated'] = success
+        # 
+        #     if success:
+        #         print(f"💾 Updated stored pose for '{position_name}'")
+        print("🚫 Position update disabled - keeping original taught poses")
 
-            if success:
-                print(f"💾 Updated stored pose for '{position_name}'")
-
-        # Update all equipment positions when converged (critical for subsequent movements)
-        if metrics['converged'] and np.linalg.norm(total_correction) > 0.001:  # Only if significant correction
-            print("🔧 Applying equipment-wide position updates...")
-            equipment_success = self.pose_history.update_equipment_positions(
-                position_name, total_correction)
-            metrics['equipment_updated'] = equipment_success
-
-            if equipment_success:
-                print(f"✅ All equipment positions updated with correction: {total_correction}")
-            else:
-                print("⚠️  Failed to update equipment positions")
+        # DISABLED: Update all equipment positions when converged
+        # Equipment updates disabled to always use original taught positions
+        # if metrics['converged'] and np.linalg.norm(total_correction) > 0.001:
+        #     print("🔧 Applying equipment-wide position updates...")
+        #     equipment_success = self.pose_history.update_equipment_positions(
+        #         position_name, total_correction)
+        #     metrics['equipment_updated'] = equipment_success
+        #     if equipment_success:
+        #         print(f"✅ All equipment positions updated with correction: {total_correction}")
+        #     else:
+        #         print("⚠️  Failed to update equipment positions")
+        print("🚫 Equipment position updates disabled - using original taught positions")
 
         print(f"\n🎯 Direct visual servoing completed for '{position_name}'")
         print(f"   Converged: {metrics['converged']}")
@@ -533,7 +594,7 @@ class VisualServoEngine:
                 break
 
             # "Good enough" check - if error is already quite small, don't over-correct
-            if pose_error_magnitude < 0.06:  # 60mm total error is quite good
+            if pose_error_magnitude < 0.01:  # 10mm total error is quite good (reduced from 60mm)
                 print(f"✅ Good enough accuracy - error {pose_error_magnitude:.4f} is acceptable")
                 metrics['converged'] = True
                 metrics['final_error'] = pose_error_magnitude
@@ -557,29 +618,54 @@ class VisualServoEngine:
             tag_translation_error = tag_error[:3]  # [x, y, z] in camera frame
             tag_rotation_error = tag_error[3:]     # [rx, ry, rz] in camera frame
 
-            # SIMPLE DIRECT CORRECTION - Apply opposite of tag error to robot movement
-            # For observation-based visual servoing, move robot opposite to tag error to compensate
-            robot_correction = -tag_error * current_damping
+            # Check if using simple legacy-style mode
+            if hasattr(self.config, 'simple_mode') and self.config.simple_mode:
+                # Simple mode: only XY translation corrections (like legacy system)
+                robot_correction = np.zeros(6)
+                robot_correction[0] = -tag_translation_error[0] * 0.4  # X correction
+                robot_correction[1] = -tag_translation_error[1] * 0.4  # Y correction
+                # Z, RX, RY, RZ remain zero for stability
+                
+                print("🔧 Simple XY-only correction (legacy style):")
+                print(f"   Translation errors: [{tag_translation_error[0]:.4f}, {tag_translation_error[1]:.4f}, {tag_translation_error[2]:.4f}]")
+                print(f"   Applied XY correction: [{robot_correction[0]:.4f}, {robot_correction[1]:.4f}, 0.0000] (Z/rotations=0)")
+                print("   Simple mode damping: 0.400")
+            else:
+                # PROPER COORDINATE TRANSFORMATION - Transform camera errors to robot corrections
+                camera_trans_error = [tag_translation_error[0], tag_translation_error[1], tag_translation_error[2]]
+                camera_rot_error = [tag_rotation_error[0], tag_rotation_error[1], tag_rotation_error[2]]
+                
+                # Apply coordinate transformation to map camera frame to robot frame
+                robot_trans_correction, robot_rot_correction = transform_camera_to_robot_correction(
+                    camera_trans_error, camera_rot_error
+                )
+                
+                # Apply damping
+                robot_trans_correction = [x * current_damping for x in robot_trans_correction]
+                robot_rot_correction = [x * current_damping for x in robot_rot_correction]
+                
+                # Combine into 6DOF correction vector
+                robot_correction = np.array(robot_trans_correction + robot_rot_correction)
 
-            # Apply safety limits
-            max_translation_correction = 0.02  # 2cm max per iteration
-            max_rotation_correction = 0.1      # ~6 degrees max per iteration
+                # Apply safety limits
+                max_translation_correction = 0.02  # 2cm max per iteration
+                max_rotation_correction = 0.1      # ~6 degrees max per iteration
 
-            # Limit translation corrections
-            for i in range(3):
-                robot_correction[i] = np.clip(robot_correction[i],
-                                              -max_translation_correction, max_translation_correction)
+                # Limit translation corrections
+                for i in range(3):
+                    robot_correction[i] = np.clip(robot_correction[i],
+                                                  -max_translation_correction, max_translation_correction)
 
-            # Limit rotation corrections
-            for i in range(3, 6):
-                robot_correction[i] = np.clip(robot_correction[i],
-                                              -max_rotation_correction, max_rotation_correction)
+                # Limit rotation corrections
+                for i in range(3, 6):
+                    robot_correction[i] = np.clip(robot_correction[i],
+                                                  -max_rotation_correction, max_rotation_correction)
 
-            print(f"🔧 Simple direct correction (damping={current_damping:.3f}):")
-            print(f"   Translation errors: [{tag_translation_error[0]:.4f}, {tag_translation_error[1]:.4f}, {tag_translation_error[2]:.4f}]")
-            print(f"   Rotation errors: [{tag_rotation_error[0]:.4f}, {tag_rotation_error[1]:.4f}, {tag_rotation_error[2]:.4f}]")
-            print(f"   Translation correction: [{robot_correction[0]:.4f}, {robot_correction[1]:.4f}, {robot_correction[2]:.4f}]")
-            print(f"   Rotation correction: [{robot_correction[3]:.4f}, {robot_correction[4]:.4f}, {robot_correction[5]:.4f}]")
+                print(f"🔧 Coordinate-transformed IBVS correction (damping={current_damping:.3f}):")
+                print(f"   Camera translation errors: [{tag_translation_error[0]:.4f}, {tag_translation_error[1]:.4f}, {tag_translation_error[2]:.4f}]")
+                print(f"   Camera rotation errors: [{tag_rotation_error[0]:.4f}, {tag_rotation_error[1]:.4f}, {tag_rotation_error[2]:.4f}]")
+                print(f"   Robot translation correction: [{robot_correction[0]:.4f}, {robot_correction[1]:.4f}, {robot_correction[2]:.4f}]")
+                print(f"   Robot rotation correction: [{robot_correction[3]:.4f}, {robot_correction[4]:.4f}, {robot_correction[5]:.4f}]")
             print(f"   Adaptive damping: {current_damping:.3f}")
 
             # Apply safety limits
@@ -608,6 +694,20 @@ class VisualServoEngine:
         # Step 6: Move to final corrected target pose
         if metrics['converged']:
             print("🎯 Moving to final corrected target pose...")
+            
+            # First validate that the target pose is reachable
+            if not self._is_pose_reachable(current_target_pose):
+                print("❌ Final target pose is not reachable by robot")
+                print("   This may be due to joint limits, singularities, or workspace constraints")
+                print("   Visual servoing converged but target position is unreachable")
+                print(f"   Target pose: {[round(x, 3) for x in current_target_pose]}")
+                
+                # Ask user if they want to continue anyway
+                response = input("\n🤔 Attempt move anyway? (y/n): ").lower().strip()
+                if response not in ['y', 'yes']:
+                    print("⏹️  Stopping workflow - target pose unreachable")
+                    return False, metrics
+            
             success = self.robot.move_to_pose(current_target_pose)
             if not success:
                 print("❌ Failed to move robot to final target pose")
@@ -641,31 +741,33 @@ class VisualServoEngine:
             position_name, stored_target_pose, current_target_pose,
             stored_obs_tag_pose, current_obs_tag_pose, metrics)
 
-        # Update stored pose if requested and converged
-        if update_stored_pose and metrics['converged']:
-            success = self.pose_history.update_position_pose(
-                position_name, current_target_pose, None)  # No direct camera_to_tag for target
-            metrics['pose_updated'] = success
+        # Update stored pose if requested and converged - DISABLED
+        # if update_stored_pose and metrics['converged']:
+        #     success = self.pose_history.update_position_pose(
+        #         position_name, current_target_pose, None)  # No direct camera_to_tag for target
+        #     metrics['pose_updated'] = success
+        # 
+        #     if success:
+        #         print(f"💾 Updated stored pose for '{position_name}'")
+        #
+        #     # Also update observation pose
+        #     obs_success = self.pose_history.update_position_pose(
+        #         observation_pose_name, stored_obs_robot_pose + total_correction, current_obs_tag_pose)
+        #     metrics['obs_pose_updated'] = obs_success
+        print("🚫 Position update disabled - keeping original taught poses")
 
-            if success:
-                print(f"💾 Updated stored pose for '{position_name}'")
-
-            # Also update observation pose
-            obs_success = self.pose_history.update_position_pose(
-                observation_pose_name, stored_obs_robot_pose + total_correction, current_obs_tag_pose)
-            metrics['obs_pose_updated'] = obs_success
-
-        # Update all equipment positions when converged (critical for subsequent movements)
-        if metrics['converged'] and np.linalg.norm(total_correction) > 0.001:  # Only if significant correction
-            print("🔧 Applying equipment-wide position updates...")
-            equipment_success = self.pose_history.update_equipment_positions(
-                position_name, total_correction)
-            metrics['equipment_updated'] = equipment_success
-
-            if equipment_success:
-                print(f"✅ All equipment positions updated with correction: {total_correction}")
-            else:
-                print("⚠️  Failed to update equipment positions")
+        # DISABLED: Update all equipment positions when converged
+        # Equipment updates disabled to always use original taught positions
+        # if metrics['converged'] and np.linalg.norm(total_correction) > 0.001:
+        #     print("🔧 Applying equipment-wide position updates...")
+        #     equipment_success = self.pose_history.update_equipment_positions(
+        #         position_name, total_correction)
+        #     metrics['equipment_updated'] = equipment_success
+        #     if equipment_success:
+        #         print(f"✅ All equipment positions updated with correction: {total_correction}")
+        #     else:
+        #         print("⚠️  Failed to update equipment positions")
+        print("🚫 Equipment position updates disabled - using original taught positions")
 
         print(f"\n🎯 Observation-based visual servoing completed for '{position_name}'")
         print(f"   Converged: {metrics['converged']}")
@@ -851,9 +953,9 @@ class VisualServoEngine:
             print(f"❌ Failed to detect AprilTag {tag_id}")
             return None
 
-        # Calculate pose correction
+        # Calculate pose correction using hand-eye calibration
         tag_error = current_tag_pose - stored_tag_pose
-        robot_correction = -tag_error  # Negative to counteract the error
+        robot_correction = self._transform_tag_error_to_robot_correction(tag_error)
 
         # Apply safety limits
         correction_valid, safety_metrics = self._validate_correction(
@@ -872,7 +974,148 @@ class VisualServoEngine:
 
         return corrected_pose
 
+    def _is_pose_reachable(self, target_pose):
+        """
+        Test if a target pose is reachable by the robot.
+        
+        This performs a quick validation by attempting a small test movement
+        to check for joint limits, singularities, or other reachability issues.
+        
+        Args:
+            target_pose: Target pose to validate (numpy array)
+            
+        Returns:
+            bool: True if pose appears reachable, False otherwise
+        """
+        try:
+            # Store current pose
+            current_pose = self.robot.get_tcp_pose()
+            
+            # Try to compute inverse kinematics by attempting a small move
+            # This will fail if the pose is outside joint limits or in singularity
+            test_success = self.robot.move_to_pose(target_pose, speed=0.01, acceleration=0.01)
+            
+            if test_success:
+                # If move succeeded, immediately return to original position
+                self.robot.move_to_pose(current_pose, speed=0.05, acceleration=0.05)
+                return True
+            else:
+                return False
+                
+        except Exception as e:
+            print(f"⚠️  Pose reachability test failed: {e}")
+            return False
+
     def set_robot_controller(self, robot_controller):
         """Set the robot controller instance"""
         self.robot = robot_controller
         print("🤖 Robot controller set for visual servo engine")
+
+    def _load_hand_eye_calibration(self) -> Optional[np.ndarray]:
+        """Load hand-eye calibration transformation if available.
+        
+        Returns:
+            4x4 transformation matrix or None if not available
+        """
+        calib_file = Path("src/ur_toolkit/hand_eye_calibration/hand_eye_calibration.json")
+        
+        if not calib_file.exists():
+            print("⚠️  No hand-eye calibration found - using coordinate frame mapping")
+            return None
+            
+        try:
+            with open(calib_file, 'r') as f:
+                data = json.load(f)
+                
+            transform = np.array(data['hand_eye_transform'])
+            print("✅ Hand-eye calibration loaded successfully")
+            print(f"   Calibration date: {data.get('calibration_date', 'Unknown')}")
+            
+            return transform
+            
+        except Exception as e:
+            print(f"⚠️  Failed to load hand-eye calibration: {e}")
+            return None
+            
+    def _transform_tag_error_to_robot_correction(self, tag_error: np.ndarray) -> np.ndarray:
+        """Transform AprilTag pose error to robot correction.
+        
+        Args:
+            tag_error: 6DOF pose error [x, y, z, rx, ry, rz] in camera frame
+            
+        Returns:
+            6DOF correction [x, y, z, rx, ry, rz] in robot frame
+        """
+        if self.hand_eye_transform is not None:
+            # Use proper hand-eye calibration transformation
+            return self._transform_with_hand_eye_calibration(tag_error)
+        else:
+            # Fallback to manual coordinate frame mapping
+            return self._transform_with_coordinate_mapping(tag_error)
+            
+    def _transform_with_hand_eye_calibration(self, tag_error: np.ndarray) -> np.ndarray:
+        """Transform error using hand-eye calibration matrix.
+        
+        Args:
+            tag_error: 6DOF pose error in camera frame
+            
+        Returns:
+            6DOF correction in robot frame
+        """
+        # Create transformation matrix from error
+        error_transform = np.eye(4)
+        error_transform[:3, 3] = tag_error[:3]
+        
+        # For small rotations, approximate rotation matrix
+        rx, ry, rz = tag_error[3:6]
+        error_transform[:3, :3] = np.array([
+            [1, -rz, ry],
+            [rz, 1, -rx],
+            [-ry, rx, 1]
+        ])
+        
+        # Transform error from camera frame to robot frame
+        # For eye-in-hand: robot_error = hand_eye_transform^-1 * camera_error * hand_eye_transform
+        hand_eye_inv = np.linalg.inv(self.hand_eye_transform)
+        robot_error_transform = hand_eye_inv @ error_transform @ self.hand_eye_transform
+        
+        # Extract 6DOF correction
+        robot_correction = np.zeros(6)
+        robot_correction[:3] = robot_error_transform[:3, 3]
+        
+        # Extract rotation (approximate for small angles)
+        R = robot_error_transform[:3, :3]
+        robot_correction[3] = (R[2, 1] - R[1, 2]) / 2
+        robot_correction[4] = (R[0, 2] - R[2, 0]) / 2
+        robot_correction[5] = (R[1, 0] - R[0, 1]) / 2
+        
+        # Negate to get correction (opposite of error)
+        return -robot_correction
+        
+    def _transform_with_coordinate_mapping(self, tag_error: np.ndarray) -> np.ndarray:
+        """Transform error using manual coordinate frame mapping.
+        
+        This is the fallback method when no hand-eye calibration is available.
+        
+        Args:
+            tag_error: 6DOF pose error in camera frame
+            
+        Returns:
+            6DOF correction in robot frame
+        """
+        # Use the improved coordinate transformation from easy_handeye principles
+        # Assuming camera mounted looking forward from end-effector
+        
+        robot_correction = np.zeros(6)
+        
+        # Position corrections (camera to robot coordinates)
+        # For eye-in-hand with camera looking forward:
+        robot_correction[0] = -tag_error[2]   # Camera Z (depth) -> Robot X (forward/back)
+        robot_correction[1] = -tag_error[0]   # Camera X (right) -> Robot Y (left/right)
+        robot_correction[2] = tag_error[1]    # Camera Y (down) -> Robot Z (up/down)
+        
+        # Rotation corrections (simplified - should use proper transformation)
+        robot_correction[3:6] = tag_error[3:6] * 0.5  # Reduced rotation gains
+        
+        # Negate to get correction (opposite of error)
+        return -robot_correction

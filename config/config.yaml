@@ -52,7 +52,7 @@ camera:
   
   # Camera calibration
   calibration:
-    file: "camera_calibration/camera_calibration.yaml"  # Path to calibration file
+    file: "src/ur_toolkit/camera_calibration/camera_calibration.yaml"  # Path to calibration file
     auto_load: true  # Load calibration automatically on startup
     required: true  # Require calibration for pose estimation
 
@@ -88,7 +88,7 @@ coordinates:
 paths:
   project_root: "."
   config_dir: "."
-  camera_calibration_dir: "camera_calibration"
+  camera_calibration_dir: "src/ur_toolkit/camera_calibration"
   photos_dir: "photos"
   logs_dir: "logs"
   archive_dir: "archive"
@@ -131,22 +131,22 @@ safety:
 # Visual Servoing Configuration
 visual_servo:
   # Correction parameters
-  max_iterations: 10  # Reasonable iterations with correct direction
+  max_iterations: 15  # Allow more iterations with higher damping
   detection_samples: 3  # Fewer samples per iteration for speed
   detection_timeout: 5.0  # Timeout for AprilTag detection in seconds
   
-  # Convergence tolerances
-  position_tolerance: 0.010  # Position tolerance for convergence in meters (10mm)
-  rotation_tolerance: 0.070  # Rotation tolerance for convergence in radians (~4 degrees)
+  # Convergence tolerances (tightened to force proper visual servoing)
+  position_tolerance: 0.003  # Position tolerance for convergence in meters (3mm)
+  rotation_tolerance: 0.017  # Rotation tolerance for convergence in radians (~1 degree)
   
   # Safety limits per iteration
   safety_limits:
     max_translation: 0.05  # Maximum translation correction per iteration in meters (5cm)
     max_rotation: 0.35  # Maximum rotation correction per iteration in radians (~20 degrees)
-    max_total_correction: 0.15  # Maximum total correction across all iterations in meters (15cm)
+    max_total_correction: 0.20  # Maximum total correction across all iterations in meters (20cm)
   
   # Correction damping (to prevent oscillation)
-  damping_factor: 0.05  # Very conservative to prevent oscillation
+  damping_factor: 0.30
   
   # Pose history management
   enable_pose_history: true  # Enable pose correction history tracking
@@ -155,6 +155,7 @@ visual_servo:
   
   # Advanced settings
   coordinate_frame: "camera"  # Reference frame for corrections: camera, robot_base
-  correction_method: "direct"  # Correction method: direct, transform_chain
+  correction_method: "simple"  # Correction method: simple, direct, transform_chain
+  simple_mode: false  # Use proper IBVS with coordinate frame transformation
   enable_drift_detection: true  # Enable automatic drift detection
   drift_check_interval: 300  # Drift check interval in seconds (5 minutes)

@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- **🎯 Hand-Eye Calibration System** - Implemented robust hand-eye calibration based on Zivid's proven methodology
+  - `HandEyeCalibrator` class with automated dataset collection and calibration solving
+  - Support for AprilTag-based calibration markers  
+  - Automatic pose generation with safety validation
+  - Quality assessment with translation/rotation residuals
+  - Integrated with visual servoing engine for proper coordinate transformations
+  - `run_hand_eye_calibration.py` script for automated calibration workflow
+  - Comprehensive documentation in `HAND_EYE_CALIBRATION_GUIDE.md`
+
 ### Changed
 - **🏗️ Major Project Restructure** - Migrated to `src/` layout for better packaging and development
   - Moved all source code to `src/ur_toolkit/`
@@ -15,9 +25,41 @@ All notable changes to this project will be documented in this file.
   - Created proper `pyproject.toml` for modern Python packaging
   - Updated README.md with new structure and corrected paths
 - **Pi Camera Server** - Kept as separate deployment component outside src/ structure
+- **🔧 Visual Servoing Improvements** - Fixed coordinate transformation issues
+  - Replaced direct error negation with proper hand-eye calibration transformations
+  - Added fallback coordinate mapping for systems without calibration
+  - Improved pose correction accuracy and stability
 
-### Added
+### Fixed
+- **Visual Servoing Coordinate Frame Issues** - Resolved the core problem causing pose correction failures
+  - Previously used `robot_correction = -tag_error` which assumes aligned coordinate frames
+  - Now uses proper hand-eye calibration matrix for coordinate transformations
+  - Addresses the "metre off" calibration issues mentioned in previous attempts
+
+### Added (Previous)
 - **Comprehensive Code Cleanup** - Fixed all flake8 linting errors across the entire codebase (reduced from 336 to 0 errors)
+- **Simple Mode Visual Servoing** - Implemented legacy-style translation-only correction mode for improved stability
+  - Added `simple_mode` configuration option to enable XY-only corrections
+  - Reduced correction complexity to match stable legacy approach from archive/sdl6
+  - Fixed proportional gain (0.4) for translation corrections, zero rotation corrections
+  - Applied to both direct and observation-based visual servoing methods
+  - Improved diagnostic output to clearly show applied corrections in simple mode
+  - **Achieved stable convergence** - System now converges reliably even when equipment is moved
+
+### Fixed
+- **Disabled Visual Servo Position Updates** - Reverted to always use original taught positions for stability
+  - Changed `update_stored_pose` default parameter to `False` 
+  - Disabled equipment-wide position updates that were causing drift
+  - Added reset test workflow (`reset_test_no_servo.yaml`) to verify original position accuracy
+  - System now maintains consistent taught positions without algorithmic corrections
+
+- **Implemented Proper Coordinate Frame Transformation** - Fixed root cause of incorrect correction directions
+  - Added `transform_camera_to_robot_correction()` function for proper frame mapping
+  - Camera frame (X-right, Y-down, Z-forward) → Robot TCP frame (X-forward, Y-left, Z-up)
+  - Replaced simple negation mapping with proper coordinate transformation
+  - Robot now moves toward equipment instead of toward base when tag detected further away
+  - Eliminated rotation error explosions (6+ radians) through proper frame alignment
+  - Enabled proper IBVS with standard PID tuning instead of simplified approach
 - **File-by-File Code Cleanup** - Systematically cleaned up individual files including ur_controller.py, config_manager.py, and entire visual_servo/ folder (config.py, detection_filter.py, pose_history.py, visual_servo_engine.py)
 - **Import Path Stability** - Added .env file for PYTHONPATH configuration and VS Code settings for consistent imports
 - **Flake8 Configuration** - Created .flake8 config file to ignore style-only errors while maintaining functional code quality

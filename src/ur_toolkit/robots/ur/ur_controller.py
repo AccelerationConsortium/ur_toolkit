@@ -344,22 +344,14 @@ class URController:
         Returns:
             bool: True if successful, False otherwise
         """
-        if not self.dashboard_client:
-            print("❌ Dashboard client not available - cannot enable freedrive")
+        if not self.rtde_c:
+            print("❌ RTDE Control interface not available - cannot enable freedrive")
             return False
 
         try:
-            # Use Dashboard Client to unlock protective stop and enable freedrive
-            # First make sure robot is not in protective stop
-            unlock_result = self.dashboard_client.unlockProtectiveStop()
-            print(f"🔓 Unlock protective stop result: {unlock_result}")
-
-            # Enable freedrive mode through Dashboard
-            freedrive_result = self.dashboard_client.brakeRelease()
-            print(f"🤲 Brake release result: {freedrive_result}")
-
-            print("🤲 Freedrive mode enabled - you can now manually move the robot")
-            print("   Use disable_freedrive() when done positioning")
+            print("🔓 Enabling freedrive mode...")
+            self.rtde_c.teachMode()
+            print("✅ Freedrive enabled - you can now move the robot manually")
             return True
 
         except Exception as e:
@@ -373,17 +365,14 @@ class URController:
         Returns:
             bool: True if successful, False otherwise
         """
-        if not self.dashboard_client:
-            print("❌ Dashboard client not available - cannot disable freedrive")
+        if not self.rtde_c:
+            print("❌ RTDE Control interface not available - cannot disable freedrive")
             return False
 
         try:
-            # Use Dashboard Client to close safety popup and re-engage brakes
-            close_popup_result = self.dashboard_client.closeSafetyPopup()
-            print(f"🔒 Close safety popup result: {close_popup_result}")
-
-            print("🔒 Freedrive mode disabled - robot returned to normal operation")
-            print("⚠️  You may need to restart the robot program from the teach pendant")
+            print("🔒 Disabling freedrive mode...")
+            self.rtde_c.endTeachMode()
+            print("✅ Freedrive disabled - robot position locked")
             return True
 
         except Exception as e:

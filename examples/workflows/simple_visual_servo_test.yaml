@@ -3,45 +3,38 @@
 
 workflow_info:
   name: "Simple Visual Servo Test"
-  description: "Basic test of visual servoing with AprilTag correction"
-  version: "1.0"
+  description: "Basic test of visual servoing: home -> observe -> visual servo to grasp -> home"
+  version: "1.1"
   author: "Robot System Tools"
 
 steps:
   # Step 1: Move to home position
   - action: movel
-    position: home
+    position: safe-home
     speed: 0.2
     description: "Move to safe home position"
 
-  # Step 2: Regular move to a position (no visual servo)
+  # Step 2: Move to observation position
   - action: movel
-    position: test_position
+    position: right-column-observe
     speed: 0.1
-    description: "Move to test position using stored coordinates"
+    description: "Move to observation position for right column"
 
   # Step 3: Wait briefly
   - action: delay
     duration: 1.0
     description: "Wait for robot to settle"
 
-  # Step 4: Visual servo to the same position (should correct for any drift)
+  # Step 4: Visual servo to grasp position
   - action: visual_servo
-    position: test_position
+    position: grasp-B
     speed: 0.05
     type: movel
-    description: "Visual servo to same position with AprilTag correction"
+    description: "Visual servo to grasp-B with AprilTag correction"
 
-  # Step 5: Test regular move with visual servo flag
+  # Step 5: Return to home
   - action: movel
-    position: test_position_2
-    speed: 0.1
-    visual_servo: true
-    description: "Move to second position with inline visual servo correction"
-
-  # Step 6: Return to home
-  - action: movel
-    position: home
+    position: safe-home
     speed: 0.2
     description: "Return to home position"
 

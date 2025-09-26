@@ -10,19 +10,11 @@ import yaml
 import argparse
 from datetime import datetime
 import time
-import sys
-import os
 from pathlib import Path
 
-# Add setup directory to path
-sys.path.insert(0, str(Path(__file__).parent / "setup"))
-
-from config_manager import (config, get_apriltag_family, get_apriltag_size,
-                            get_camera_calibration_file)
-
-# Add camera module to Python path
-sys.path.append(os.path.join(os.path.dirname(__file__), 'camera'))
-from picam import PiCam, PiCamConfig
+from ur_toolkit.config_manager import (config, get_apriltag_family, get_apriltag_size,
+                                       get_camera_calibration_file)
+from ur_toolkit.camera.picam.picam import PiCam, PiCamConfig
 
 try:
     from pupil_apriltags import Detector as PupilAprilTagDetector

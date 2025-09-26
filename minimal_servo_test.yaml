@@ -1,0 +1,38 @@
+# Minimal Visual Servo Test
+# Test visual servoing with simple mode but no position updates
+
+workflow_info:
+  name: "Minimal Visual Servo Test"
+  description: "Test visual servoing with simple mode, no position updates, 3 iterations max"
+  version: "1.0"
+  author: "Robot System Tools"
+
+steps:
+  # Step 1: Move to safe home
+  - action: movel
+    position: safe-home
+    speed: 0.2
+    description: "Move to safe home position"
+
+  # Step 2: Move to observation position  
+  - action: movel
+    position: right-column-observe
+    speed: 0.1
+    description: "Move to right column observation position"
+
+  # Step 3: Wait briefly
+  - action: delay
+    duration: 1.0
+    description: "Wait for settling"
+
+  # Step 4: Visual servo with limited iterations
+  - action: visual_servo
+    position: grasp-B
+    max_iterations: 3
+    description: "Visual servo to grasp-B with max 3 iterations (no position updates)"
+
+  # Step 5: Return home
+  - action: movel
+    position: safe-home
+    speed: 0.2
+    description: "Return to safe home position"

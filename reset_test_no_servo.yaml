@@ -1,0 +1,49 @@
+# Reset Test - No Visual Servoing
+# Simple movement workflow to reset and test original taught positions
+
+workflow_info:
+  name: "Reset Test - No Servoing"
+  description: "Test original taught positions without visual servoing to reset system"
+  version: "1.0"
+  author: "Robot System Tools"
+
+steps:
+  # Step 1: Move to safe home
+  - action: movel
+    position: safe-home
+    speed: 0.2
+    description: "Move to safe home position"
+
+  # Step 2: Move to observation position  
+  - action: movel
+    position: right-column-observe
+    speed: 0.1
+    description: "Move to right column observation position"
+
+  # Step 3: Wait briefly
+  - action: delay
+    duration: 2.0
+    description: "Wait and observe"
+
+  # Step 4: Move directly to grasp position (NO VISUAL SERVO)
+  - action: movel
+    position: grasp-B
+    speed: 0.05
+    description: "Move directly to grasp-B position using original taught coordinates"
+
+  # Step 5: Wait at grasp position
+  - action: delay
+    duration: 2.0
+    description: "Wait at grasp position to observe accuracy"
+
+  # Step 6: Return to safe position above grasp
+  - action: movel
+    position: grasp-B-safe
+    speed: 0.1
+    description: "Move to safe position above grasp"
+
+  # Step 7: Return home
+  - action: movel
+    position: safe-home
+    speed: 0.2
+    description: "Return to safe home position"
