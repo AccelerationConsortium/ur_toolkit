@@ -41,7 +41,7 @@ camera:
   
   # Pi Camera Server (remote camera access)
   server:
-    host: "100.114.26.7"  # Pi camera server IP address
+    host: "100.86.179.18"  # Pi camera server IP address
     port: 2222  # Server port for camera communication
     timeout: 10  # Connection timeout in seconds
   

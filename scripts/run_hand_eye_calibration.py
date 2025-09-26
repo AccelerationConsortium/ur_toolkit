@@ -32,6 +32,8 @@ def main():
                        help="AprilTag IDs to use for calibration")
     parser.add_argument("--num-poses", type=int, default=15,
                        help="Number of calibration poses")
+    parser.add_argument("--manual", action="store_true",
+                       help="Use manual freedrive mode instead of automatic movement")
     parser.add_argument("--dry-run", action="store_true",
                        help="Test setup without actually moving robot")
     
@@ -116,7 +118,10 @@ def main():
             return False
             
         # Run calibration
-        success = calibrator.run_automatic_calibration(args.num_poses)
+        if args.manual:
+            success = calibrator.run_manual_calibration(args.num_poses)
+        else:
+            success = calibrator.run_automatic_calibration(args.num_poses)
         
         if success:
             print("\n🎉 Hand-eye calibration completed successfully!")

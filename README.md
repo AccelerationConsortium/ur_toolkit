@@ -228,6 +228,43 @@ python src/ur_toolkit/camera_calibration/capture_calibration_photos.py
 python src/ur_toolkit/camera_calibration/calculate_camera_intrinsics.py
 ```
 
+### 5. Hand-Eye Calibration
+
+For precise camera-to-robot coordinate transformation:
+
+```bash
+# Run automated hand-eye calibration
+python scripts/run_hand_eye_calibration.py --robot-ip 192.168.1.100 --tag-ids 0 --num-poses 15
+```
+
+**What it does:**
+- Automatically moves robot through 15 diverse poses
+- Captures AprilTag detections at each pose
+- Solves the AX = XB calibration equation using OpenCV's robust algorithm
+- Saves calibration to `src/ur_toolkit/hand_eye_calibration/hand_eye_calibration.json`
+
+**Parameters:**
+- `--robot-ip`: Your robot's IP address
+- `--tag-ids`: AprilTag IDs to use (default: [0])
+- `--num-poses`: Number of calibration poses (default: 15)
+- `--manual`: Use manual freedrive mode instead of automatic movement
+
+**Safety Notes:**
+- ⚠️ Ensure workspace is clear before starting
+- Keep emergency stop accessible
+- Verify robot joint limits and collision avoidance
+- AprilTag must be visible from all poses
+
+**Quality Assessment:**
+- **Excellent**: Translation error < 5mm, Rotation error < 2°
+- **Good**: Translation error < 10mm, Rotation error < 5°  
+- **Poor**: Translation error > 10mm, Rotation error > 5° (recalibrate)
+
+**Troubleshooting:**
+- **"No AprilTag detected"**: Check lighting, tag visibility, verify tag IDs
+- **"Pose not reachable"**: Start from more central robot position
+- **"Poor calibration quality"**: Increase `--num-poses`, ensure good lighting
+
 ## 🏗️ Development
 
 The project uses a `src/` layout for better packaging and testing:
