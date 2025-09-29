@@ -58,7 +58,7 @@ camera:
 
 # AprilTag Detection Configuration
 apriltag:
-  family: "tag36h11"  # Tag family: tag36h11, tag25h9, tag16h5
+  family: "tagStandard41h12"  # Tag family: tagStandard41h12 (recommended), tagStandard52h13, tag36h11, tag25h9, tag16h5
   tag_size: 0.023  # Physical tag size in meters (23mm)
   
   # Detection parameters

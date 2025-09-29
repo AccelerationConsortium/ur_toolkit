@@ -167,7 +167,7 @@ python calculate_handeye_calibration.py --input handeye_data_YYYYMMDD_HHMMSS.jso
 ### AprilTag Configuration
 ```python
 apriltag_config = {
-    'tag_family': 'tag36h11',       # Standard family
+    'tag_family': 'tagStandard41h12',       # Recommended family
     'tag_size_mm': 23.0,            # Physical tag size
     'calibration_file': 'camera_calibration/camera_calibration.yaml'
 }

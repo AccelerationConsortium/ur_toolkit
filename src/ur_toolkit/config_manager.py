@@ -120,7 +120,7 @@ class ConfigManager:
                 }
             },
             'apriltag': {
-                'family': 'tag36h11',
+                'family': 'tagStandard41h12',
                 'tag_size': 0.023
             },
             '_project_root': self.find_project_root()
@@ -227,7 +227,7 @@ def get_camera_port() -> int:
 
 def get_apriltag_family() -> str:
     """Get AprilTag family"""
-    return config.get('apriltag.family', 'tag36h11')
+    return config.get('apriltag.family', 'tagStandard41h12')
 
 
 def get_apriltag_size() -> float:

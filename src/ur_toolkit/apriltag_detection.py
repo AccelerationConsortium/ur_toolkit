@@ -287,8 +287,9 @@ def main():
     parser.add_argument('--host', help='Camera server hostname/IP (overrides config)')
     parser.add_argument('--port', type=int, help='Camera server port (overrides config)')
     parser.add_argument('--calibration', help='Camera calibration file (overrides config)')
-    parser.add_argument('--tag-family', choices=['tag36h11', 'tag25h9', 'tag16h5'],
-                        help='AprilTag family (overrides config)')
+    parser.add_argument('--tag-family',
+                        choices=['tag36h11', 'tag25h9', 'tag16h5', 'tagStandard41h12', 'tagStandard52h13', 'tagCircle49h12', 'tagCircle21h7'],
+                        help='AprilTag family (overrides config). Note: Legacy families use lowercase (tag36h11), newer families use camelCase (tagStandard41h12)')
     parser.add_argument('--tag-size', type=float,
                         help='AprilTag size in millimeters (overrides config)')
     parser.add_argument('--save-detections', action='store_true',

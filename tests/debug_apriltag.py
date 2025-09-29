@@ -41,7 +41,7 @@ def process_image(image_path, detector, source_description=""):
         print("   - Tag not visible in image")
         print("   - Tag too small/large")
         print("   - Poor lighting")
-        print("   - Wrong tag family (looking for tag36h11)")
+        print("   - Wrong tag family (looking for tagStandard41h12)")
     else:
         for i, detection in enumerate(detections):
             print(f"   Tag {i+1}:")
