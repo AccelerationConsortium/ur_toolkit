@@ -257,6 +257,75 @@ class VisualServoSimulation:
         plt.savefig(filename, dpi=150, bbox_inches='tight')
         print(f"📸 Saved snapshots to {filename}")
         plt.close()
+    
+    def create_animation_frames(self, output_dir='animation_frames'):
+        """Create individual frames for animation"""
+        import os
+        os.makedirs(output_dir, exist_ok=True)
+        
+        poses = np.array(self.pose_history)
+        n_poses = len(poses)
+        
+        # Create frames at regular intervals
+        frame_interval = max(1, n_poses // 30)  # Target ~30 frames
+        
+        for frame_idx, pose_idx in enumerate(range(0, n_poses, frame_interval)):
+            fig = plt.figure(figsize=(10, 8))
+            ax = fig.add_subplot(111, projection='3d')
+            
+            current = poses[pose_idx]
+            
+            # Plot trajectory up to current point
+            ax.plot(poses[:pose_idx+1, 0], poses[:pose_idx+1, 1], poses[:pose_idx+1, 2],
+                   'b-', linewidth=2, alpha=0.6, label='Trajectory')
+            
+            # Plot target
+            ax.scatter(self.target_pose[0], self.target_pose[1], self.target_pose[2],
+                      c='red', s=400, marker='*', label='Target', alpha=0.8)
+            
+            # Plot current position
+            ax.scatter(current[0], current[1], current[2],
+                      c='blue', s=300, marker='o', label='Robot', alpha=0.9)
+            
+            # Draw line to target
+            ax.plot([current[0], self.target_pose[0]],
+                   [current[1], self.target_pose[1]],
+                   [current[2], self.target_pose[2]],
+                   'k--', alpha=0.5, linewidth=2)
+            
+            # Draw coordinate frame
+            scale = 0.08
+            colors = ['red', 'green', 'blue']
+            for i, color in enumerate(colors):
+                vec = np.zeros(3)
+                vec[i] = scale
+                arrow = Arrow3D([current[0], current[0]+vec[0]],
+                              [current[1], current[1]+vec[1]],
+                              [current[2], current[2]+vec[2]],
+                              mutation_scale=15, lw=2, arrowstyle='->', color=color)
+                ax.add_artist(arrow)
+            
+            error = np.linalg.norm(current[:3] - self.target_pose[:3])
+            
+            ax.set_xlabel('X (m)')
+            ax.set_ylabel('Y (m)')
+            ax.set_zlabel('Z (m)')
+            ax.set_title(f'Visual Servoing: Iteration {pose_idx}\nError: {error*1000:.1f}mm', 
+                        fontsize=14, fontweight='bold')
+            ax.legend(loc='upper right')
+            
+            # Set consistent limits
+            ax.set_xlim([0.3, 0.6])
+            ax.set_ylim([0.2, 0.4])
+            ax.set_zlim([0.3, 0.5])
+            
+            # Save frame
+            frame_path = os.path.join(output_dir, f'frame_{frame_idx:03d}.png')
+            plt.savefig(frame_path, dpi=100, bbox_inches='tight')
+            plt.close()
+        
+        print(f"🎬 Created {frame_idx+1} animation frames in {output_dir}/")
+        return frame_idx + 1
 
 def main():
     """Run visual servoing simulation"""
@@ -278,6 +347,42 @@ def main():
     # Generate visualizations
     sim.visualize_trajectory('visual_servo_trajectory.png')
     sim.visualize_snapshots('visual_servo_snapshots.png')
+    
+    # Create animation frames
+    print()
+    print("=" * 60)
+    print("Creating animation...")
+    print("=" * 60)
+    n_frames = sim.create_animation_frames('animation_frames')
+    
+    # Create GIF from frames
+    try:
+        import imageio
+        import glob
+        
+        frames = []
+        frame_files = sorted(glob.glob('animation_frames/frame_*.png'))
+        
+        print(f"📹 Compiling {len(frame_files)} frames into GIF...")
+        for frame_file in frame_files:
+            frames.append(imageio.imread(frame_file))
+        
+        # Save as GIF with good quality
+        imageio.mimsave('visual_servo_animation.gif', frames, 
+                       duration=0.1, loop=0)
+        print("✅ Saved animation to visual_servo_animation.gif")
+        
+        # Clean up frame files
+        import shutil
+        shutil.rmtree('animation_frames')
+        print("🧹 Cleaned up temporary frames")
+        
+    except ImportError:
+        print("⚠️  imageio not available - install with: pip install imageio")
+        print("   Animation frames saved in animation_frames/ directory")
+    except Exception as e:
+        print(f"⚠️  Could not create GIF: {e}")
+        print("   Animation frames saved in animation_frames/ directory")
     
     print()
     print("✅ Simulation complete!")
