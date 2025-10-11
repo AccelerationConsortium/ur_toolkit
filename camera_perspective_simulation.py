@@ -28,8 +28,8 @@ class CameraPerspectiveSimulation:
         # Tag centered and at ~0.3m distance
         self.target_camera_to_tag = np.array([0.0, 0.0, 0.3, 0.0, 0.0, 0.0])
         
-        # Initial pose (offset and rotated)
-        self.current_camera_to_tag = np.array([0.05, -0.04, 0.25, 0.5, -0.3, 0.2])
+        # Initial pose (offset and rotated significantly)
+        self.current_camera_to_tag = np.array([0.06, -0.05, 0.25, 0.6, -0.4, 0.3])
         
         # Control parameters
         self.control_gain = 0.4
@@ -38,6 +38,48 @@ class CameraPerspectiveSimulation:
         # History
         self.pose_history = [self.current_camera_to_tag.copy()]
         
+    def generate_apriltag_pattern(self, size=100):
+        """Generate a realistic AprilTag 36h11 pattern"""
+        # Create white background
+        tag = np.ones((size, size), dtype=np.uint8) * 255
+        
+        # Black border (2 pixels)
+        border = 2
+        tag[:border, :] = 0
+        tag[-border:, :] = 0
+        tag[:, :border] = 0
+        tag[:, -border:] = 0
+        
+        # Inner pattern for tag36h11 (simplified but recognizable)
+        # Create a 6x6 grid pattern
+        cell_size = (size - 2*border) // 6
+        offset = border
+        
+        # Specific pattern to make it look like AprilTag 36h11
+        # This is a simplified pattern that looks like an AprilTag
+        pattern = [
+            [0, 0, 0, 0, 0, 0],
+            [0, 1, 1, 1, 1, 0],
+            [0, 1, 0, 0, 1, 0],
+            [0, 1, 0, 1, 1, 0],
+            [0, 1, 1, 1, 0, 0],
+            [0, 0, 0, 0, 0, 0],
+        ]
+        
+        for i in range(6):
+            for j in range(6):
+                y_start = offset + i * cell_size
+                y_end = offset + (i + 1) * cell_size
+                x_start = offset + j * cell_size
+                x_end = offset + (j + 1) * cell_size
+                
+                if pattern[i][j] == 0:
+                    tag[y_start:y_end, x_start:x_end] = 0
+                else:
+                    tag[y_start:y_end, x_start:x_end] = 255
+        
+        return tag
+    
     def project_tag_corners(self, camera_to_tag):
         """Project AprilTag corners to image plane"""
         # Tag corners in tag frame (4 corners of square)
@@ -76,67 +118,85 @@ class CameraPerspectiveSimulation:
         
         return np.array(corners_image)
     
-    def render_camera_view(self, camera_to_tag, iteration):
-        """Render what camera sees"""
-        fig, ax = plt.subplots(figsize=(8, 6))
+    def render_camera_view_with_target(self, camera_to_tag, iteration):
+        """Render camera view with target reference side-by-side"""
+        fig = plt.figure(figsize=(14, 6))
         
+        # Left subplot: Current view
+        ax1 = fig.add_subplot(1, 2, 1)
+        self._render_single_view(ax1, camera_to_tag, iteration, is_target=False)
+        
+        # Right subplot: Target view (reference)
+        ax2 = fig.add_subplot(1, 2, 2)
+        self._render_single_view(ax2, self.target_camera_to_tag, iteration, is_target=True)
+        
+        plt.tight_layout()
+        return fig
+    
+    def _render_single_view(self, ax, camera_to_tag, iteration, is_target=False):
+        """Render a single camera view"""
         # Background
         ax.set_xlim(0, self.image_width)
         ax.set_ylim(self.image_height, 0)  # Image coordinates: origin at top-left
         ax.set_aspect('equal')
-        ax.set_facecolor('#f0f0f0')
+        ax.set_facecolor('#e8e8e8')
         
-        # Draw crosshair (target center)
-        ax.plot([self.cx-20, self.cx+20], [self.cy, self.cy], 'g--', linewidth=2, alpha=0.5)
-        ax.plot([self.cx, self.cx], [self.cy-20, self.cy+20], 'g--', linewidth=2, alpha=0.5)
-        ax.plot(self.cx, self.cy, 'go', markersize=8, alpha=0.5, label='Target Center')
+        if not is_target:
+            # Draw crosshair (target center) only in current view
+            ax.plot([self.cx-30, self.cx+30], [self.cy, self.cy], 'g--', linewidth=1.5, alpha=0.6)
+            ax.plot([self.cx, self.cx], [self.cy-30, self.cy+30], 'g--', linewidth=1.5, alpha=0.6)
         
         # Project tag corners
         corners = self.project_tag_corners(camera_to_tag)
         
-        # Draw tag
+        # Generate AprilTag pattern
+        tag_pattern = self.generate_apriltag_pattern(size=200)
+        
+        # Warp the tag pattern to the projected corners
+        # Source points (corners of the pattern image)
+        src_pts = np.array([[0, 0], [200, 0], [200, 200], [0, 200]], dtype=np.float32)
+        # Destination points (projected corners)
+        dst_pts = corners.astype(np.float32)
+        
+        # Compute perspective transform
+        M = cv2.getPerspectiveTransform(src_pts, dst_pts)
+        
+        # Warp the tag pattern
+        warped_tag = cv2.warpPerspective(tag_pattern, M, 
+                                         (self.image_width, self.image_height),
+                                         flags=cv2.INTER_LINEAR,
+                                         borderMode=cv2.BORDER_CONSTANT,
+                                         borderValue=200)
+        
+        # Display the warped tag
+        ax.imshow(warped_tag, cmap='gray', vmin=0, vmax=255, alpha=0.9)
+        
+        # Draw tag outline
         tag_polygon = patches.Polygon(corners, closed=True, 
-                                     edgecolor='black', facecolor='white', 
-                                     linewidth=3)
+                                     edgecolor='red', facecolor='none', 
+                                     linewidth=2, linestyle='--')
         ax.add_patch(tag_polygon)
         
-        # Draw inner black square (AprilTag pattern)
-        inner_ratio = 0.8
-        center = corners.mean(axis=0)
-        inner_corners = center + (corners - center) * inner_ratio
-        inner_polygon = patches.Polygon(inner_corners, closed=True,
-                                       edgecolor='black', facecolor='black',
-                                       linewidth=1)
-        ax.add_patch(inner_polygon)
+        if is_target:
+            ax.set_title('Target Position\n(Goal)', fontsize=12, fontweight='bold', color='green')
+        else:
+            # Calculate errors
+            position_error = np.linalg.norm(camera_to_tag[:3] - self.target_camera_to_tag[:3])
+            rotation_error = np.linalg.norm(camera_to_tag[3:] - self.target_camera_to_tag[3:])
+            
+            # Center offset in pixels
+            tag_center_img = corners.mean(axis=0)
+            pixel_offset = np.linalg.norm(tag_center_img - np.array([self.cx, self.cy]))
+            
+            ax.set_title(f'Current View - Iteration {iteration}\n'
+                        f'Pos Err: {position_error*1000:.1f}mm | '
+                        f'Rot Err: {rotation_error:.3f}rad | '
+                        f'Px Off: {pixel_offset:.1f}px',
+                        fontsize=11, fontweight='bold')
         
-        # Draw white blocks (simplified AprilTag pattern)
-        for i in range(4):
-            block_center = center + (corners[i] - center) * 0.6
-            block_size = np.linalg.norm(corners[0] - corners[1]) * 0.15
-            block = plt.Circle(block_center, block_size, color='white')
-            ax.add_patch(block)
-        
-        # Calculate errors
-        position_error = np.linalg.norm(camera_to_tag[:3] - self.target_camera_to_tag[:3])
-        rotation_error = np.linalg.norm(camera_to_tag[3:] - self.target_camera_to_tag[3:])
-        
-        # Center offset in pixels
-        tag_center_img = corners.mean(axis=0)
-        pixel_offset = np.linalg.norm(tag_center_img - np.array([self.cx, self.cy]))
-        
-        # Title with info
-        ax.set_title(f'Camera View - Iteration {iteration}\n'
-                    f'Position Error: {position_error*1000:.1f}mm | '
-                    f'Rotation Error: {rotation_error:.3f}rad | '
-                    f'Pixel Offset: {pixel_offset:.1f}px',
-                    fontsize=12, fontweight='bold')
-        
-        ax.set_xlabel('Image Width (pixels)', fontsize=10)
-        ax.set_ylabel('Image Height (pixels)', fontsize=10)
-        ax.legend(loc='upper right')
-        ax.grid(True, alpha=0.3)
-        
-        return fig
+        ax.set_xlabel('Image Width (pixels)', fontsize=9)
+        ax.set_ylabel('Image Height (pixels)', fontsize=9)
+        ax.grid(True, alpha=0.2, linewidth=0.5)
     
     def step(self):
         """Execute one visual servoing iteration"""
@@ -167,26 +227,20 @@ class CameraPerspectiveSimulation:
         import os
         os.makedirs('camera_frames', exist_ok=True)
         
-        # Create frames at intervals
-        frame_indices = [0, 10, 20, 30, 40, 49]
+        # Create frames every 3 iterations for smoother animation
+        frame_interval = 3
         
         for iteration in range(self.max_iters):
             error = self.step()
             
-            if iteration in frame_indices:
-                fig = self.render_camera_view(self.pose_history[iteration], iteration)
-                plt.savefig(f'camera_frames/frame_{iteration:02d}.png', 
+            if iteration % frame_interval == 0 or iteration == self.max_iters - 1:
+                fig = self.render_camera_view_with_target(self.pose_history[iteration], iteration)
+                plt.savefig(f'camera_frames/frame_{iteration:03d}.png', 
                            dpi=100, bbox_inches='tight')
                 plt.close()
                 print(f"📸 Frame {iteration}: Error = {error*1000:.1f}mm")
         
-        # Create final frame
-        fig = self.render_camera_view(self.pose_history[-1], len(self.pose_history)-1)
-        plt.savefig(f'camera_frames/frame_{len(self.pose_history)-1:02d}.png',
-                   dpi=100, bbox_inches='tight')
-        plt.close()
-        
-        print(f"✅ Created {len(frame_indices)+1} camera perspective frames")
+        print(f"✅ Created frames for camera perspective")
         
     def create_gif(self):
         """Compile frames into GIF"""
@@ -200,13 +254,13 @@ class CameraPerspectiveSimulation:
             print(f"📹 Compiling {len(frame_files)} frames into GIF...")
             for frame_file in frame_files:
                 img = imageio.imread(frame_file)
-                # Duplicate each frame multiple times for slower animation
-                for _ in range(5):
+                # Add each frame twice for slower animation
+                for _ in range(2):
                     frames.append(img)
             
             # Save as GIF
             imageio.mimsave('camera_perspective_animation.gif', frames,
-                           duration=0.2, loop=0)
+                           duration=0.15, loop=0)
             print("✅ Saved animation to camera_perspective_animation.gif")
             
             # Clean up
@@ -234,6 +288,7 @@ def main():
     print()
     print("This shows how the AprilTag appears in the camera")
     print("as the robot converges to the target pose using speedL().")
+    print("Left: Current view | Right: Target reference")
 
 if __name__ == "__main__":
     main()
