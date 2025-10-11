@@ -25,6 +25,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import FancyArrowPatch
 from mpl_toolkits.mplot3d import proj3d
+from scipy.spatial.transform import Rotation as R
 import time
 
 class Arrow3D(FancyArrowPatch):
@@ -46,8 +47,9 @@ class VisualServoSimulation:
         # Target AprilTag pose (goal)
         self.target_pose = np.array([0.5, 0.3, 0.4, 0.0, 0.0, 0.0])
         
-        # Initial robot pose (offset from target)
-        self.current_pose = np.array([0.4, 0.25, 0.35, 0.1, -0.15, 0.05])
+        # Initial robot pose (offset from target with significant rotation)
+        # Large rotation offsets make orientation convergence more visible
+        self.current_pose = np.array([0.4, 0.25, 0.35, 0.5, -0.4, 0.3])
         
         # Control parameters
         self.control_gain = 0.5  # Increased for faster convergence
@@ -270,7 +272,7 @@ class VisualServoSimulation:
         frame_interval = max(1, n_poses // 30)  # Target ~30 frames
         
         for frame_idx, pose_idx in enumerate(range(0, n_poses, frame_interval)):
-            fig = plt.figure(figsize=(10, 8))
+            fig = plt.figure(figsize=(12, 9))
             ax = fig.add_subplot(111, projection='3d')
             
             current = poses[pose_idx]
@@ -279,13 +281,49 @@ class VisualServoSimulation:
             ax.plot(poses[:pose_idx+1, 0], poses[:pose_idx+1, 1], poses[:pose_idx+1, 2],
                    'b-', linewidth=2, alpha=0.6, label='Trajectory')
             
-            # Plot target
+            # Plot target with coordinate frame
             ax.scatter(self.target_pose[0], self.target_pose[1], self.target_pose[2],
                       c='red', s=400, marker='*', label='Target', alpha=0.8)
+            
+            # Draw TARGET coordinate frame (larger and more visible)
+            scale = 0.12
+            colors = ['red', 'green', 'blue']
+            labels = ['X', 'Y', 'Z']
+            
+            # Target frame - use target orientation (0,0,0 in this case)
+            from scipy.spatial.transform import Rotation as R
+            target_rot = R.from_rotvec(self.target_pose[3:])
+            target_rot_matrix = target_rot.as_matrix()
+            
+            for i, (color, label) in enumerate(zip(colors, labels)):
+                vec = np.zeros(3)
+                vec[i] = scale
+                # Apply rotation
+                vec_rotated = target_rot_matrix @ vec
+                arrow = Arrow3D([self.target_pose[0], self.target_pose[0]+vec_rotated[0]],
+                              [self.target_pose[1], self.target_pose[1]+vec_rotated[1]],
+                              [self.target_pose[2], self.target_pose[2]+vec_rotated[2]],
+                              mutation_scale=20, lw=3, arrowstyle='->', color=color, alpha=0.7)
+                ax.add_artist(arrow)
             
             # Plot current position
             ax.scatter(current[0], current[1], current[2],
                       c='blue', s=300, marker='o', label='Robot', alpha=0.9)
+            
+            # Draw CURRENT coordinate frame (larger and rotated)
+            current_rot = R.from_rotvec(current[3:])
+            current_rot_matrix = current_rot.as_matrix()
+            
+            for i, (color, label) in enumerate(zip(colors, labels)):
+                vec = np.zeros(3)
+                vec[i] = scale
+                # Apply rotation
+                vec_rotated = current_rot_matrix @ vec
+                arrow = Arrow3D([current[0], current[0]+vec_rotated[0]],
+                              [current[1], current[1]+vec_rotated[1]],
+                              [current[2], current[2]+vec_rotated[2]],
+                              mutation_scale=20, lw=3, arrowstyle='->', color=color, alpha=0.9)
+                ax.add_artist(arrow)
             
             # Draw line to target
             ax.plot([current[0], self.target_pose[0]],
@@ -293,31 +331,25 @@ class VisualServoSimulation:
                    [current[2], self.target_pose[2]],
                    'k--', alpha=0.5, linewidth=2)
             
-            # Draw coordinate frame
-            scale = 0.08
-            colors = ['red', 'green', 'blue']
-            for i, color in enumerate(colors):
-                vec = np.zeros(3)
-                vec[i] = scale
-                arrow = Arrow3D([current[0], current[0]+vec[0]],
-                              [current[1], current[1]+vec[1]],
-                              [current[2], current[2]+vec[2]],
-                              mutation_scale=15, lw=2, arrowstyle='->', color=color)
-                ax.add_artist(arrow)
+            position_error = np.linalg.norm(current[:3] - self.target_pose[:3])
+            rotation_error = np.linalg.norm(current[3:] - self.target_pose[3:])
             
-            error = np.linalg.norm(current[:3] - self.target_pose[:3])
-            
-            ax.set_xlabel('X (m)')
-            ax.set_ylabel('Y (m)')
-            ax.set_zlabel('Z (m)')
-            ax.set_title(f'Visual Servoing: Iteration {pose_idx}\nError: {error*1000:.1f}mm', 
+            ax.set_xlabel('X (m)', fontsize=11)
+            ax.set_ylabel('Y (m)', fontsize=11)
+            ax.set_zlabel('Z (m)', fontsize=11)
+            ax.set_title(f'Visual Servoing: Iteration {pose_idx}\n'
+                        f'Position Error: {position_error*1000:.1f}mm | '
+                        f'Rotation Error: {rotation_error:.3f}rad', 
                         fontsize=14, fontweight='bold')
-            ax.legend(loc='upper right')
+            ax.legend(loc='upper right', fontsize=10)
             
             # Set consistent limits
             ax.set_xlim([0.3, 0.6])
             ax.set_ylim([0.2, 0.4])
             ax.set_zlim([0.3, 0.5])
+            
+            # Adjust viewing angle for better visibility
+            ax.view_init(elev=20, azim=45)
             
             # Save frame
             frame_path = os.path.join(output_dir, f'frame_{frame_idx:03d}.png')
