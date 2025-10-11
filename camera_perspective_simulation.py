@@ -33,7 +33,7 @@ class CameraPerspectiveSimulation:
         
         # Control parameters
         self.control_gain = 0.4
-        self.max_iters = 50
+        self.max_iters = 150  # Tripled from 50
         
         # History
         self.pose_history = [self.current_camera_to_tag.copy()]
