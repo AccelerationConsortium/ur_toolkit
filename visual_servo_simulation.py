@@ -286,7 +286,7 @@ class VisualServoSimulation:
                       c='red', s=400, marker='*', label='Target', alpha=0.8)
             
             # Draw TARGET coordinate frame (larger and more visible)
-            scale = 0.12
+            scale = 0.08  # Reduced from 0.12 for less obtrusive arrows
             colors = ['red', 'green', 'blue']
             labels = ['X', 'Y', 'Z']
             
