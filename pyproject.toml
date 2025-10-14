@@ -38,6 +38,7 @@ dev = [
     "pytest-cov",
     "flake8",
     "black",
+    "matplotlib",
 ]
 
 [project.scripts]
