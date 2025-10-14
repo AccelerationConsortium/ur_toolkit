@@ -15,9 +15,10 @@ try:
     from pupil_apriltags import Detector
     APRILTAG_DETECTOR_AVAILABLE = True
 except ImportError:
-    APRILTAG_DETECTOR_AVAILABLE = False
-    print("⚠️ pupil-apriltags not installed. Run: pip install pupil-apriltags")
-    print("   Falling back to synthetic AprilTag generation")
+    print("❌ pupil-apriltags not installed. This simulation requires it.")
+    print("   Install with: pip install pupil-apriltags")
+    print()
+    raise ImportError("pupil-apriltags is required for camera perspective simulation")
 
 class CameraPerspectiveSimulation:
     """Simulates camera view of AprilTag during visual servoing"""
@@ -49,78 +50,47 @@ class CameraPerspectiveSimulation:
         # History
         self.pose_history = [self.current_camera_to_tag.copy()]
         
-        # Initialize AprilTag detector if available
-        if APRILTAG_DETECTOR_AVAILABLE:
-            self.detector = Detector(
-                families=self.tag_family,
-                nthreads=1,
-                quad_decimate=1.0,
-                quad_sigma=0.0,
-                refine_edges=1,
-                decode_sharpening=0.25,
-                debug=0
-            )
-            # Camera parameters for pupil-apriltags: [fx, fy, cx, cy]
-            self.camera_params = [self.focal_length, self.focal_length, self.cx, self.cy]
-        else:
-            self.detector = None
+        # Initialize AprilTag detector
+        self.detector = Detector(
+            families=self.tag_family,
+            nthreads=1,
+            quad_decimate=1.0,
+            quad_sigma=0.0,
+            refine_edges=1,
+            decode_sharpening=0.25,
+            debug=0
+        )
+        # Camera parameters for pupil-apriltags: [fx, fy, cx, cy]
+        self.camera_params = [self.focal_length, self.focal_length, self.cx, self.cy]
         
     def generate_apriltag_pattern(self, size=200, tag_id=0):
-        """Generate AprilTag using pupil-apriltags library or fallback to synthetic pattern"""
-        if APRILTAG_DETECTOR_AVAILABLE:
+        """Load actual AprilTag image for realistic detection"""
+        import os
+        import urllib.request
+        
+        # Path to AprilTag image
+        tag_file = 'apriltag_base.png'
+        
+        # Download if not exists
+        if not os.path.exists(tag_file):
             try:
-                # Try to generate using apriltag library
-                # This is a simplified approach - in practice we'd use a tag generation library
-                # For now, create a recognizable synthetic pattern
-                return self._generate_synthetic_pattern(size)
+                url = "https://raw.githubusercontent.com/AprilRobotics/apriltag-imgs/master/tag36h11/tag36_11_00000.png"
+                print(f"📥 Downloading AprilTag image...")
+                urllib.request.urlretrieve(url, tag_file)
+                print(f"✅ Downloaded {tag_file}")
             except Exception as e:
-                print(f"⚠️ AprilTag generation failed: {e}, using synthetic pattern")
-                return self._generate_synthetic_pattern(size)
-        else:
-            return self._generate_synthetic_pattern(size)
-    
-    def _generate_synthetic_pattern(self, size=200):
-        """Generate a realistic AprilTag 36h11 pattern (fallback method)"""
-        # Create white background
-        tag = np.ones((size, size), dtype=np.uint8) * 255
+                print(f"⚠️ Could not download AprilTag: {e}")
+                raise RuntimeError("pupil-apriltags requires real AprilTag images for detection")
         
-        # Black border (2 pixels)
-        border = 2
-        tag[:border, :] = 0
-        tag[-border:, :] = 0
-        tag[:, :border] = 0
-        tag[:, -border:] = 0
+        # Load and resize the AprilTag
+        tag_base = cv2.imread(tag_file, cv2.IMREAD_GRAYSCALE)
+        if tag_base is None:
+            raise RuntimeError(f"Could not load {tag_file}")
         
-        # Inner pattern for tag36h11 (simplified but recognizable)
-        # Create a 6x6 grid pattern
-        cell_size = (size - 2*border) // 6
-        offset = border
-        
-        # Specific pattern to make it look like AprilTag 36h11 ID 0
-        # This is a simplified pattern that looks like an AprilTag
-        pattern = [
-            [0, 0, 0, 0, 0, 0],
-            [0, 1, 1, 1, 1, 0],
-            [0, 1, 0, 0, 1, 0],
-            [0, 1, 0, 1, 1, 0],
-            [0, 1, 1, 1, 0, 0],
-            [0, 0, 0, 0, 0, 0],
-        ]
-        
-        for i in range(6):
-            for j in range(6):
-                y_start = offset + i * cell_size
-                y_end = offset + (i + 1) * cell_size
-                x_start = offset + j * cell_size
-                x_end = offset + (j + 1) * cell_size
-                
-                if pattern[i][j] == 0:
-                    tag[y_start:y_end, x_start:x_end] = 0
-                else:
-                    tag[y_start:y_end, x_start:x_end] = 255
-        
-        return tag
-    
+        # Resize using nearest neighbor to preserve the pattern
+        tag_pattern = cv2.resize(tag_base, (size, size), interpolation=cv2.INTER_NEAREST)
+        return tag_pattern
+
     def project_tag_corners(self, camera_to_tag):
         """Project AprilTag corners to image plane"""
         # Tag corners in tag frame (4 corners of square)
@@ -212,9 +182,9 @@ class CameraPerspectiveSimulation:
         # Display the warped tag
         ax.imshow(warped_tag, cmap='gray', vmin=0, vmax=255, alpha=0.9)
         
-        # Detect AprilTag using pupil-apriltags if available and not target view
+        # Detect AprilTag using pupil-apriltags (not in target view)
         detection_text = ""
-        if APRILTAG_DETECTOR_AVAILABLE and self.detector and not is_target:
+        if not is_target:
             try:
                 detections = self.detector.detect(
                     warped_tag,
@@ -235,7 +205,7 @@ class CameraPerspectiveSimulation:
                 else:
                     detection_text = "\n✗ No detection"
             except Exception as e:
-                detection_text = f"\n⚠️ Detection error"
+                detection_text = f"\n⚠️ Detection error: {str(e)[:30]}"
         
         # Draw tag outline
         tag_polygon = patches.Polygon(corners, closed=True, 
@@ -343,11 +313,7 @@ def main():
     print("=" * 60)
     print("Camera Perspective Visual Servoing Simulation")
     print("Shows AprilTag detection during convergence")
-    if APRILTAG_DETECTOR_AVAILABLE:
-        print("Using pupil-apriltags for AprilTag detection")
-    else:
-        print("⚠️ pupil-apriltags not available - using synthetic patterns")
-        print("   Install with: pip install pupil-apriltags")
+    print("Using pupil-apriltags for AprilTag detection")
     print("=" * 60)
     print()
     
@@ -361,10 +327,9 @@ def main():
     print("This shows how the AprilTag appears in the camera")
     print("as the robot converges to the target pose using speedL().")
     print("Left: Current view | Right: Target reference")
-    if APRILTAG_DETECTOR_AVAILABLE:
-        print()
-        print("Green outline = pupil-apriltags detection")
-        print("Red dashed outline = ground truth projection")
+    print()
+    print("Green outline = pupil-apriltags detection")
+    print("Red dashed outline = ground truth projection")
 
 if __name__ == "__main__":
     main()
