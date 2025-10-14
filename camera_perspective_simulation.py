@@ -194,7 +194,21 @@ class CameraPerspectiveSimulation:
                 )
                 if detections:
                     det = detections[0]
-                    detection_text = f"\n✓ Detected: ID {det.tag_id} | Decision Margin: {det.decision_margin:.1f}"
+                    
+                    # Extract pose information
+                    # Translation vector (XYZ position in meters)
+                    tvec = det.pose_t.flatten()
+                    x, y, z = tvec[0], tvec[1], tvec[2]
+                    
+                    # Rotation matrix to roll-pitch-yaw
+                    from scipy.spatial.transform import Rotation as R
+                    rot = R.from_matrix(det.pose_R)
+                    roll, pitch, yaw = rot.as_euler('xyz', degrees=True)
+                    
+                    detection_text = (f"\n✓ Detected: ID {det.tag_id} | DM: {det.decision_margin:.1f}\n"
+                                    f"XYZ: ({x*1000:.1f}, {y*1000:.1f}, {z*1000:.1f})mm\n"
+                                    f"RPY: ({roll:.1f}°, {pitch:.1f}°, {yaw:.1f}°)")
+                    
                     # Draw detected corners in green if detection is good
                     if det.decision_margin > 50:
                         detected_corners = det.corners
