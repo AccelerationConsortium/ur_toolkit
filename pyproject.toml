@@ -39,6 +39,8 @@ dev = [
     "flake8",
     "black",
     "matplotlib",
+    "imageio",
+    "pupil-apriltags",
 ]
 
 [project.scripts]
