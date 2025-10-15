@@ -44,8 +44,8 @@ class CameraPerspectiveSimulation:
         self.current_camera_to_tag = np.array([0.06, -0.05, 0.25, 0.6, -0.4, 0.3])
         
         # Control parameters
-        self.control_gain = 0.6  # Increased from 0.4 for faster convergence
-        self.max_iters = 150  # Tripled from 50
+        self.control_gain = 0.8  # Increased for faster convergence
+        self.max_iters = 300  # Increased to show complete convergence
         
         # History
         self.pose_history = [self.current_camera_to_tag.copy()]
