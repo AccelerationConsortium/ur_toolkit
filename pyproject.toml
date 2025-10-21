@@ -38,6 +38,9 @@ dev = [
     "pytest-cov",
     "flake8",
     "black",
+    "matplotlib",
+    "imageio",
+    "pupil-apriltags",
 ]
 
 [project.scripts]
