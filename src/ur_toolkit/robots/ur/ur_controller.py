@@ -16,6 +16,7 @@ from scipy.spatial.transform import Rotation as R
 try:
     import dashboard_client
     import script_client
+
     DASHBOARD_AVAILABLE = True
 except ImportError:
     DASHBOARD_AVAILABLE = False
@@ -23,6 +24,7 @@ except ImportError:
 
 # Import centralized configuration
 import sys
+
 sys.path.append(str(Path(__file__).parent.parent.parent))
 import sys
 from pathlib import Path
@@ -37,7 +39,15 @@ from config_manager import config
 class URController:
     """Universal Robots interface using RTDE"""
 
-    def __init__(self, robot_ip=None, speed=None, acceleration=None, read_only=False, gripper_ip=None, gripper_port=None):
+    def __init__(
+        self,
+        robot_ip=None,
+        speed=None,
+        acceleration=None,
+        read_only=False,
+        gripper_ip=None,
+        gripper_port=None,
+    ):
         """
         Initialize UR robot interface
 
@@ -49,15 +59,17 @@ class URController:
             gripper_ip: IP address of gripper for socket-based control (optional)
             gripper_port: Port for gripper socket communication (default 502)
         """
-        self.robot_ip = robot_ip or config.get('robot.ip_address', '192.168.0.10')
-        self.speed = speed or config.get('robot.default_speed', 0.05)
-        self.acceleration = acceleration or config.get('robot.default_acceleration', 0.2)
+        self.robot_ip = robot_ip or config.get("robot.ip_address", "192.168.0.10")
+        self.speed = speed or config.get("robot.default_speed", 0.05)
+        self.acceleration = acceleration or config.get(
+            "robot.default_acceleration", 0.2
+        )
         self.read_only = read_only
 
         # Gripper socket configuration (Robotiq URCap port 63352)
-        self.gripper_ip = gripper_ip or config.get('gripper.ip_address', self.robot_ip)
-        self.gripper_port = gripper_port or config.get('gripper.port', 63352)
-        self.gripper_timeout = config.get('gripper.timeout', 5.0)
+        self.gripper_ip = gripper_ip or config.get("gripper.ip_address", self.robot_ip)
+        self.gripper_port = gripper_port or config.get("gripper.port", 63352)
+        self.gripper_timeout = config.get("gripper.timeout", 5.0)
         self.gripper_socket = None
 
         print(f"🤖 Connecting to UR robot at {self.robot_ip}...")
@@ -80,7 +92,9 @@ class URController:
 
                     # Script client requires major/minor version - use common UR5e/UR10e versions
                     # Most modern UR robots use control version 5.x
-                    self.script_client = script_client.ScriptClient(self.robot_ip, 5, 11)  # UR 5.11
+                    self.script_client = script_client.ScriptClient(
+                        self.robot_ip, 5, 11
+                    )  # UR 5.11
                     self.script_client.connect()
                     print("✅ Dashboard and Script clients connected")
                 except Exception as e:
@@ -102,9 +116,11 @@ class URController:
 
     def set_calibration_speed(self):
         """Set safe speeds for calibration movements to prevent protective stop"""
-        self.speed = config.get('robot.calibration_speed', 0.02)
-        self.acceleration = config.get('robot.calibration_acceleration', 0.1)
-        print(f"🐌 Calibration speeds set: {self.speed * 1000:.0f}mm/s, {self.acceleration * 1000:.0f}mm/s²")
+        self.speed = config.get("robot.calibration_speed", 0.02)
+        self.acceleration = config.get("robot.calibration_acceleration", 0.1)
+        print(
+            f"🐌 Calibration speeds set: {self.speed * 1000:.0f}mm/s, {self.acceleration * 1000:.0f}mm/s²"
+        )
 
     def get_tcp_pose(self):
         """
@@ -165,7 +181,9 @@ class URController:
             if current_joints is None:
                 current_joints = self.get_joint_positions()
 
-            joints = self.rtde_c.getInverseKinematics(pose.tolist(), current_joints.tolist())
+            joints = self.rtde_c.getInverseKinematics(
+                pose.tolist(), current_joints.tolist()
+            )
 
             if joints is None:
                 print("❌ No inverse kinematics solution found")
@@ -285,17 +303,16 @@ class URController:
             bool: True if at target pose
         """
         if position_tolerance is None:
-            position_tolerance = config.get('robot.position_tolerance', 0.001)
+            position_tolerance = config.get("robot.position_tolerance", 0.001)
         if rotation_tolerance is None:
-            rotation_tolerance = config.get('robot.rotation_tolerance', 0.01)
+            rotation_tolerance = config.get("robot.rotation_tolerance", 0.01)
 
         current_pose = self.get_tcp_pose()
 
         position_diff = np.linalg.norm(current_pose[:3] - target_pose[:3])
         rotation_diff = np.linalg.norm(current_pose[3:] - target_pose[3:])
 
-        return (position_diff < position_tolerance
-                and rotation_diff < rotation_tolerance)
+        return position_diff < position_tolerance and rotation_diff < rotation_tolerance
 
     def stop_motion(self):
         """Emergency stop robot motion"""
@@ -334,8 +351,10 @@ class URController:
 
     def format_pose(self, pose):
         """Format pose for nice printing"""
-        return (f"[{pose[0]:.3f}, {pose[1]:.3f}, {pose[2]:.3f}, "
-                f"{pose[3]:.3f}, {pose[4]:.3f}, {pose[5]:.3f}]")
+        return (
+            f"[{pose[0]:.3f}, {pose[1]:.3f}, {pose[2]:.3f}, "
+            f"{pose[3]:.3f}, {pose[4]:.3f}, {pose[5]:.3f}]"
+        )
 
     def enable_freedrive(self):
         """
@@ -411,7 +430,7 @@ class URController:
 
             # Confirm position
             confirm = input("💾 Save this position? (y/N): ").lower().strip()
-            if confirm != 'y':
+            if confirm != "y":
                 print("❌ Position teaching cancelled")
                 return False
 
@@ -419,9 +438,9 @@ class URController:
             self.disable_freedrive()
 
             return {
-                'pose': current_pose,
-                'joints': current_joints,
-                'name': position_name
+                "pose": current_pose,
+                "joints": current_joints,
+                "name": position_name,
             }
 
         except KeyboardInterrupt:
@@ -510,14 +529,14 @@ class URController:
         try:
             # Send command
             if isinstance(command, str):
-                command = command.encode('utf-8')
+                command = command.encode("utf-8")
 
             self.gripper_socket.send(command)
             print(f"📤 Sent gripper command: {command}")
 
             # Read response
             try:
-                response = self.gripper_socket.recv(1024).decode('utf-8').strip()
+                response = self.gripper_socket.recv(1024).decode("utf-8").strip()
                 print(f"📥 Gripper response: {response}")
                 return response
             except socket.timeout:
@@ -666,7 +685,7 @@ class URController:
         if response:
             try:
                 # Parse response - format may vary by gripper model
-                status = {'raw_response': response}
+                status = {"raw_response": response}
                 return status
             except Exception as e:
                 print(f"❌ Failed to parse gripper status: {e}")
@@ -686,13 +705,16 @@ def main():
     """Test the UR robot interface"""
     import argparse
 
-    parser = argparse.ArgumentParser(description='UR Robot Interface Test')
-    parser.add_argument('--robot-ip', default=None,
-                        help='Robot IP address (overrides config)')
-    parser.add_argument('--test-move', action='store_true',
-                        help='Perform small test movement')
-    parser.add_argument('--test-gripper', action='store_true',
-                        help='Test gripper functionality')
+    parser = argparse.ArgumentParser(description="UR Robot Interface Test")
+    parser.add_argument(
+        "--robot-ip", default=None, help="Robot IP address (overrides config)"
+    )
+    parser.add_argument(
+        "--test-move", action="store_true", help="Perform small test movement"
+    )
+    parser.add_argument(
+        "--test-gripper", action="store_true", help="Test gripper functionality"
+    )
 
     args = parser.parse_args()
 
@@ -700,7 +722,7 @@ def main():
     print("=" * 50)
 
     try:
-        robot_ip = args.robot_ip or config.get('robot.ip_address', '192.168.0.10')
+        robot_ip = args.robot_ip or config.get("robot.ip_address", "192.168.0.10")
 
         with URController(robot_ip) as robot:
             if not robot.test_connection():

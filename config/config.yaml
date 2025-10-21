@@ -58,7 +58,7 @@ camera:
 
 # AprilTag Detection Configuration
 apriltag:
-  family: "tagStandard41h12"  # Tag family: tagStandard41h12 (recommended), tagStandard52h13, tag36h11, tag25h9, tag16h5
+  family: "tag36h11"  # Tag family: tag36h11 (current physical tags), tagStandard41h12, tagStandard52h13, tag25h9, tag16h5
   tag_size: 0.023  # Physical tag size in meters (23mm)
   
   # Detection parameters
@@ -131,9 +131,11 @@ safety:
 # Visual Servoing Configuration
 visual_servo:
   # Correction parameters
+  enabled: true  # Master toggle: false skips all visual servo actions
   max_iterations: 15  # Allow more iterations with higher damping
   detection_samples: 3  # Fewer samples per iteration for speed
   detection_timeout: 5.0  # Timeout for AprilTag detection in seconds
+  enable_rotation: true  # Disable rotation correction for stability
   
   # Convergence tolerances (tightened to force proper visual servoing)
   position_tolerance: 0.003  # Position tolerance for convergence in meters (3mm)
@@ -149,9 +151,11 @@ visual_servo:
   damping_factor: 0.30
   
   # Pose history management
-  enable_pose_history: true  # Enable pose correction history tracking
+  enable_pose_history: false  # Enable pose correction history tracking
   max_history_entries: 50  # Maximum number of history entries per position
   auto_update_positions: true  # Automatically update stored positions after successful correction
+  reset_positions_on_start: true  # If true, revert any propagated visual servo coordinate changes
+  enable_iteration_logging: true  # Log per-iteration servo metrics to logs/visual_servo_iterations.csv
   
   # Advanced settings
   coordinate_frame: "camera"  # Reference frame for corrections: camera, robot_base

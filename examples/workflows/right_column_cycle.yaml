@@ -1,0 +1,66 @@
+name: "Right Column Cycle"
+description: "Right-column grasp cycle (no inline visual servo; external correction applied beforehand)"
+
+# Steps:
+# 1) safe-home
+# 2) gripper activate
+# 3) right-column-observe
+# 4) grasp-B-safe
+# 5) grasp-B
+# 6) gripper close
+# 7) grasp-B-safe
+# 8) grasp-B
+# 8b) gripper open
+# 9) grasp-B-safe
+# 10) safe-home
+# 0.5s delay between each movement or gripper action
+
+steps:
+  - {action: "moveL", position: "safe-home"}
+  - {action: "delay", duration: 0.5}
+  - {action: "gripper_activate"}
+  - {action: "delay", duration: 0.5}
+  - {action: "gripper_open"}
+  - {action: "delay", duration: 0.5}
+
+  - {action: "moveL", position: "right-column-observe"}
+  - {action: "delay", duration: 0.5}
+
+  # Optional visual servo (controlled by visual_servo.enabled in config). If disabled, treated as no-op.
+  - {action: "visual_servo", position: "right-column-observe"}
+  - {action: "delay", duration: 0.5}
+
+  - {action: "moveL", position: "grasp-right-safe"}
+  - {action: "delay", duration: 0.5}
+
+  - {action: "moveL", position: "grasp-right"}
+  - {action: "delay", duration: 0.5}
+
+  - {action: "gripper_close"}
+  - {action: "delay", duration: 0.5}
+
+  - {action: "moveL", position: "grasp-right-safe"}
+  - {action: "delay", duration: 0.5}
+
+  - {action: "moveL", position: "grasp-right"}
+  - {action: "delay", duration: 0.5}
+
+  - {action: "gripper_open"}
+  - {action: "delay", duration: 0.5}
+
+  - {action: "moveL", position: "grasp-right-safe"}
+  - {action: "delay", duration: 0.5}
+
+  - {action: "moveL", position: "safe-home"}
+  - {action: "delay", duration: 0.5}
+
+validation:
+  required_positions:
+    - safe-home
+    - right-column-observe
+    - grasp-right
+    - grasp-right-safe
+  safety_checks:
+    - robot_remote_mode
+    - gripper_operational
+    - emergency_stop_clear

@@ -11,316 +11,154 @@ apriltags:
     observation_pose: observe-B
 positions:
   safe-home:
-    coordinates:
-    - -0.056
-    - -0.451
-    - 0.307
-    - -0.037
-    - -2.166
-    - 2.265
-    joints:
-    - 5.169
-    - -1.752
-    - -2.405
-    - 1.07
-    - -5.193
-    - 6.269
+    coordinates: [-0.056, -0.451, 0.307, -0.037, -2.166, 2.265]
+    joints: [5.169, -1.752, -2.405, 1.07, -5.193, 6.269]
     description: Safe home position
     pose_type: observation
     tag_reference: tag_1
-    camera_to_tag:
-    - -0.144
-    - 0.045
-    - 0.42
-    - 3.111
-    - -0.005
-    - -0.056
+    camera_to_tag: [-0.144, 0.045, 0.42, 3.111, -0.005, -0.056]
   grasp-A:
-    coordinates:
-    - 0.097
-    - -0.679
-    - 0.222
-    - 0.016
-    - 2.222
-    - -2.192
-    joints:
-    - 5.24
-    - -2.747
-    - -0.909
-    - 0.503
-    - -5.234
-    - 6.309
+    coordinates: [0.097, -0.679, 0.222, 0.016, 2.222, -2.192]
+    joints: [5.24, -2.747, -0.909, 0.503, -5.234, 6.309]
     description: Left column grasp
     pose_type:
     - work
     equipment_name: left-column
     observation_pose: grasp-A
-    observation_offset:
-    - 0.0
-    - 0.0
-    - 0.0
-    - 0.0
-    - 0.0
-    - 0.0
+    observation_offset: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     tag_reference: tag_1
-    camera_to_tag:
-    - 0.005
-    - -0.05
-    - 0.183
-    - -3.093
-    - 0.003
-    - 0.079
+    camera_to_tag: [0.005, -0.05, 0.183, -3.093, 0.003, 0.079]
   grasp-A-safe:
-    coordinates:
-    - 0.097
-    - -0.679
-    - 0.242
-    - 0.016
-    - 2.222
-    - -2.192
-    joints:
-    - 5.24
-    - -2.747
-    - -0.909
-    - 0.503
-    - -5.234
-    - 6.309
+    coordinates: [0.097, -0.679, 0.242, 0.016, 2.222, -2.192]
+    joints: [5.24, -2.747, -0.909, 0.503, -5.234, 6.309]
     description: Safe approach above grasp-A (2cm offset)
     pose_type: work
     equipment_name: left-column
     observation_pose: grasp-A
-    observation_offset:
-    - 0.0
-    - 0.0
-    - 0.02
-    - 0.0
-    - 0.0
-    - 0.0
+    observation_offset: [0.0, 0.0, 0.02, 0.0, 0.0, 0.0]
   test-c:
-    coordinates:
-    - -0.189
-    - -0.518
-    - 0.354
-    - 0.118
-    - 2.579
-    - -1.789
-    joints:
-    - 4.551
-    - -1.819
-    - -1.433
-    - -0.249
-    - -4.605
-    - 6.286
+    coordinates: [-0.189, -0.518, 0.354, 0.118, 2.579, -1.789]
+    joints: [4.551, -1.819, -1.433, -0.249, -4.605, 6.286]
     description: ''
     pose_type: observation
     tag_reference: tag_2
-    camera_to_tag:
-    - -0.047
-    - -0.009
-    - 0.36
-    - -2.784
-    - 0.097
-    - -0.042
+    camera_to_tag: [-0.047, -0.009, 0.36, -2.784, 0.097, -0.042]
     equipment_name: test-c
     observation_pose: test-c
-    observation_offset:
-    - 0.0
-    - 0.0
-    - 0.0
-    - 0.0
-    - 0.0
-    - 0.0
+    observation_offset: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
   test-D:
-    coordinates:
-    - -0.403
-    - -0.392
-    - 0.413
-    - -0.772
-    - -1.809
-    - 1.669
-    joints:
-    - 4.375
-    - -1.82
-    - -1.513
-    - 0.112
-    - -5.198
-    - 6.301
+    coordinates: [-0.403, -0.392, 0.413, -0.772, -1.809, 1.669]
+    joints: [4.375, -1.82, -1.513, 0.112, -5.198, 6.301]
     description: ''
     pose_type: work
     observation_pose: null
   dummy 4:
-    coordinates:
-    - -0.403
-    - -0.392
-    - 0.413
-    - -0.772
-    - -1.809
-    - 1.669
-    joints:
-    - 4.375
-    - -1.82
-    - -1.513
-    - 0.112
-    - -5.198
-    - 6.301
+    coordinates: [-0.403, -0.392, 0.413, -0.772, -1.809, 1.669]
+    joints: [4.375, -1.82, -1.513, 0.112, -5.198, 6.301]
     description: ''
     pose_type: work
     equipment_name: 4th station
     observation_pose: 4th station-observe
-    observation_offset:
-    - -0.201
-    - 0.089
-    - 0.045
-    - -0.834
-    - 0.527
-    - -0.186
+    observation_offset: [-0.201, 0.089, 0.045, -0.834, 0.527, -0.186]
   4th station-observe:
-    coordinates:
-    - -0.202
-    - -0.481
-    - 0.368
-    - 0.062
-    - 2.382
-    - -1.855
-    joints:
-    - 4.375
-    - -1.82
-    - -1.513
-    - -0.073
-    - -4.316
-    - 6.301
+    coordinates: [-0.202, -0.481, 0.368, 0.062, 2.382, -1.855]
+    joints: [4.375, -1.82, -1.513, -0.073, -4.316, 6.301]
     description: Observation pose for 4th station
     pose_type: observation
     tag_reference: tag_2
-    camera_to_tag:
-    - -0.024
-    - 0.024
-    - 0.408
-    - -2.88
-    - 0.181
-    - 0.135
+    camera_to_tag: [-0.024, 0.024, 0.408, -2.88, 0.181, 0.135]
     equipment_name: 4th station
     observation_pose: 4th station-observe
-    observation_offset:
-    - 0.0
-    - 0.0
-    - 0.0
-    - 0.0
-    - 0.0
-    - 0.0
+    observation_offset: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
   test-5:
-    coordinates:
-    - -0.202
-    - -0.481
-    - 0.368
-    - 0.062
-    - 2.382
-    - -1.855
-    joints:
-    - 4.375
-    - -1.819
-    - -1.513
-    - -0.073
-    - -4.316
-    - 6.301
+    coordinates: [-0.202, -0.481, 0.368, 0.062, 2.382, -1.855]
+    joints: [4.375, -1.819, -1.513, -0.073, -4.316, 6.301]
     description: ''
     pose_type:
     - work
     - observation
     equipment_name: test5
     observation_pose: test-5
-    observation_offset:
-    - 0.0
-    - 0.0
-    - 0.0
-    - 0.0
-    - 0.0
-    - 0.0
+    observation_offset: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     tag_reference: tag_2
-    camera_to_tag:
-    - -0.024
-    - 0.024
-    - 0.407
-    - -2.873
-    - 0.181
-    - 0.137
+    camera_to_tag: [-0.024, 0.024, 0.407, -2.873, 0.181, 0.137]
   grasp-B:
-    coordinates:
-    - -0.1379730445833015
-    - -0.6532712339148175
-    - 0.1763012992680356
-    - 0.0036936957905076033
-    - -2.221048231737977
-    - 2.214544585215203
-    joints:
-    - 4.687
-    - -2.841
-    - -0.962
-    - 0.657
-    - -4.685
-    - 6.278
+    coordinates: [-0.131, -0.615, 0.108, 0.069, -2.221, 2.035]
+    joints: [4.687, -2.841, -0.962, 0.657, -4.685, 6.278]
     description: ''
     pose_type: work
     equipment_name: right-column
     observation_pose: right-column-observe
-    observation_offset:
-    - 0.004108925139692743
-    - -0.10301444690712325
-    - -0.11483987405945315
-    - 0.0036171775020144422
-    - 0.030824312289923217
-    - 0.03060287121572758
+    observation_offset: [0.004108925139692743, -0.10301444690712325, -0.11483987405945315, 0.0036171775020144422, 0.030824312289923217,
+      0.03060287121572758]
     last_visual_servo_update: '2025-09-24T17:20:36.243195'
   right-column-observe:
-    coordinates:
-    - -0.1419730445833015
-    - -0.5502712339148175
-    - 0.2903012992680356
-    - 0.000693695790507603
-    - -2.251048231737977
-    - 2.1835445852152033
-    joints:
-    - 4.664
-    - -2.166
-    - -1.683
-    - 0.675
-    - -4.665
-    - 6.278
+    coordinates: [-0.135, -0.512, 0.223, 0.065, -2.252, 2.004]
+    joints: [0.818, -1.054, 0.885, 0.315, 0.864, 3.011]
     description: Observation pose for right-column
     pose_type: observation
     tag_reference: tag_2
-    camera_to_tag:
-    - 0.005042829885036635
-    - 0.009550357313701281
-    - 0.3289624418814822
-    - -0.02036029306868384
-    - -3.0165404960560247
-    - -0.11959608775808148
+    camera_to_tag: [-0.01, -0.071, 0.326, -2.956, -0.208, -0.173]
     equipment_name: right-column
-    last_visual_servo_update: '2025-09-24T17:20:36.269920'
+    last_visual_servo_update: '2025-10-21T14:10:00.617301'
   grasp-B-safe:
-    coordinates:
-    - -0.141
-    - -0.655
-    - 0.197
-    - 0.003
-    - -2.227
-    - 2.214
-    joints:
-    - 4.687
-    - -2.841
-    - -0.962
-    - 0.657
-    - -4.685
-    - 6.278
+    coordinates: [-0.131, -0.615, 0.128, 0.069, -2.221, 2.035]
+    joints: [4.687, -2.841, -0.962, 0.657, -4.685, 6.278]
     description: Safe up position (20.0mm from grasp-B)
     pose_type: work
     equipment_name: right-column
     observation_pose: right-column-observe
-    observation_offset:
-    - 0.004108925139692743
-    - -0.10301444690712325
-    - -0.09483987405945316
-    - 0.0036171775020144422
-    - 0.030824312289923217
-    - 0.03060287121572758
+    observation_offset: [0.004108925139692743, -0.10301444690712325, -0.09483987405945316, 0.0036171775020144422, 0.030824312289923217,
+      0.03060287121572758]
+  grasp-right:
+    coordinates: [-0.142, -0.587, 0.112, 0.071, -2.169, 2.155]
+    joints: [0.916, -0.681, 0.883, -0.197, 0.922, 3.132]
+    description: ''
+    pose_type: work
+    equipment_name: right-column
+    observation_pose: right-column-observe
+    observation_offset: [-0.007120092742927325, -0.07527190326890298, -0.11067671989843408, 0.0058240797773486145, 0.08306896764563598,
+      0.15114823170252212]
+  grasp-right-safe:
+    coordinates: [-0.142, -0.587, 0.132, 0.071, -2.169, 2.155]
+    joints: [0.916, -0.681, 0.883, -0.197, 0.922, 3.132]
+    description: Safe up position (20.0mm from grasp-right)
+    pose_type: work
+    equipment_name: right-column
+    observation_pose: right-column-observe
+    observation_offset: [-0.007120092742927325, -0.07527190326890298, -0.0906767198984341, 0.0058240797773486145, 0.08306896764563598,
+      0.15114823170252212]
+  test:
+    coordinates: [-0.06, -0.457, 0.261, 0.235, -2.055, 2.205]
+    joints: [0.571, -1.776, 2.071, -0.424, 0.544, 3.059]
+    description: ''
+    pose_type: work
+  test-observe:
+    coordinates: [-0.151, -0.397, 0.282, -0.193, 2.221, -2.2]
+    joints: [0.049, -1.8, 1.901, -0.394, -0.044, 3.355]
+    description: ''
+    pose_type: observation
+    tag_reference: tag_2
+    camera_to_tag: [0.04, 0.001, 0.464, -3.155, -0.119, -0.01]
+    equipment_name: test-eq
+  pose A:
+    coordinates: [-0.135, -0.588, 0.269, 0.006, -2.253, 2.14]
+    joints: [0.818, -0.846, 1.547, -3.776, -0.845, 6.212]
+    description: ''
+    pose_type: work
+  pose-A-observe:
+    coordinates: [-0.135, -0.588, 0.269, 0.006, -2.253, 2.139]
+    joints: [0.818, -0.846, 1.547, -3.776, -0.845, 6.212]
+    description: ''
+    pose_type: observation
+    tag_reference: tag_2
+    camera_to_tag: [0.011, -0.012, 0.269, -3.118, -0.027, 0.048]
+    equipment_name: poseA
+  pose-B-observe:
+    coordinates: [0.025, -0.422, 0.353, -0.529, -2.253, 1.63]
+    joints: [1.62, -1.679, 1.879, -2.984, -2.088, 6.435]
+    description: ''
+    pose_type: observation
+    tag_reference: tag_2
+    camera_to_tag: [0.017, -0.041, 0.478, -2.758, 0.088, -0.6]
+    equipment_name: pose-B
