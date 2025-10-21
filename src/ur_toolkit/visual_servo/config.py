@@ -23,57 +23,74 @@ class VisualServoConfig:
     @property
     def max_iterations(self) -> int:
         """Maximum number of correction iterations"""
-        return self.config.get('visual_servo.max_iterations', 3)
+        return self.config.get("visual_servo.max_iterations", 3)
 
     @property
     def detection_samples(self) -> int:
         """Number of detection samples for median filtering"""
-        return self.config.get('visual_servo.detection_samples', 5)
+        return self.config.get("visual_servo.detection_samples", 5)
 
     @property
     def position_tolerance(self) -> float:
         """Position tolerance for convergence (meters)"""
-        return self.config.get('visual_servo.position_tolerance', 0.002)
+        return self.config.get("visual_servo.position_tolerance", 0.002)
 
     @property
     def rotation_tolerance(self) -> float:
         """Rotation tolerance for convergence (radians)"""
-        return self.config.get('visual_servo.rotation_tolerance', 0.017)  # ~1 degree
+        return self.config.get("visual_servo.rotation_tolerance", 0.017)  # ~1 degree
 
     @property
     def max_translation_correction(self) -> float:
         """Maximum allowed translation correction per iteration (meters)"""
-        return self.config.get('visual_servo.safety_limits.max_translation', 0.05)
+        return self.config.get("visual_servo.safety_limits.max_translation", 0.05)
 
     @property
     def max_rotation_correction(self) -> float:
         """Maximum allowed rotation correction per iteration (radians)"""
-        return self.config.get('visual_servo.safety_limits.max_rotation', 0.35)  # ~20 degrees
+        return self.config.get(
+            "visual_servo.safety_limits.max_rotation", 0.35
+        )  # ~20 degrees
 
     @property
     def max_total_correction(self) -> float:
         """Maximum total correction across all iterations (meters)"""
-        return self.config.get('visual_servo.safety_limits.max_total_correction', 0.15)
+        return self.config.get("visual_servo.safety_limits.max_total_correction", 0.15)
 
     @property
     def damping_factor(self) -> float:
         """Damping factor for corrections to prevent oscillation"""
-        return self.config.get('visual_servo.damping_factor', 0.7)
+        return self.config.get("visual_servo.damping_factor", 0.7)
+
+    @property
+    def enable_rotation(self) -> bool:
+        """Whether to apply rotation corrections during visual servoing"""
+        return self.config.get("visual_servo.enable_rotation", True)
+
+    @property
+    def enabled(self) -> bool:
+        """Global master enable for visual servoing (skip entirely when False)"""
+        return self.config.get("visual_servo.enabled", True)
+
+    @property
+    def reset_positions_on_start(self) -> bool:
+        """Whether to revert propagated visual-servo updates at engine startup"""
+        return self.config.get("visual_servo.reset_positions_on_start", False)
 
     @property
     def enable_pose_history(self) -> bool:
         """Whether to maintain pose correction history"""
-        return self.config.get('visual_servo.enable_pose_history', True)
+        return self.config.get("visual_servo.enable_pose_history", True)
 
     @property
     def max_history_entries(self) -> int:
         """Maximum number of pose history entries to keep"""
-        return self.config.get('visual_servo.max_history_entries', 50)
+        return self.config.get("visual_servo.max_history_entries", 50)
 
     @property
     def detection_timeout(self) -> float:
         """Timeout for AprilTag detection (seconds)"""
-        return self.config.get('visual_servo.detection_timeout', 5.0)
+        return self.config.get("visual_servo.detection_timeout", 5.0)
 
     def print_config(self):
         """Print current visual servoing configuration"""
@@ -87,21 +104,27 @@ class VisualServoConfig:
         print(f"   Max total correction: {self.max_total_correction:.3f}m")
         print(f"   Damping factor: {self.damping_factor:.2f}")
         print(f"   Pose history enabled: {self.enable_pose_history}")
+        print(f"   Rotation corrections enabled: {self.enable_rotation}")
+        print(f"   Visual servo globally enabled: {self.enabled}")
+        print(f"   Reset positions on start: {self.reset_positions_on_start}")
         print(f"   Detection timeout: {self.detection_timeout}s")
 
     def get_all_config(self):
         """Get all visual servo configuration as dictionary"""
         return {
-            'max_iterations': self.max_iterations,
-            'detection_samples': self.detection_samples,
-            'position_tolerance': self.position_tolerance,
-            'rotation_tolerance': self.rotation_tolerance,
-            'max_translation_correction': self.max_translation_correction,
-            'max_rotation_correction': self.max_rotation_correction,
-            'max_total_correction': self.max_total_correction,
-            'enable_pose_history': self.enable_pose_history,
-            'max_history_entries': self.max_history_entries,
-            'detection_timeout': self.detection_timeout
+            "max_iterations": self.max_iterations,
+            "detection_samples": self.detection_samples,
+            "position_tolerance": self.position_tolerance,
+            "rotation_tolerance": self.rotation_tolerance,
+            "max_translation_correction": self.max_translation_correction,
+            "max_rotation_correction": self.max_rotation_correction,
+            "max_total_correction": self.max_total_correction,
+            "enable_pose_history": self.enable_pose_history,
+            "enable_rotation": self.enable_rotation,
+            "enabled": self.enabled,
+            "reset_positions_on_start": self.reset_positions_on_start,
+            "max_history_entries": self.max_history_entries,
+            "detection_timeout": self.detection_timeout,
         }
 
 

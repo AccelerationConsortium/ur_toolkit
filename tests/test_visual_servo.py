@@ -7,16 +7,15 @@ Comprehensive test of the visual servoing functionality
 import sys
 from pathlib import Path
 
-# Add parent directories to path
-sys.path.insert(0, str(Path(__file__).parent.parent))
-sys.path.insert(0, str(Path(__file__).parent.parent / "setup"))
+# Add src directory to path for ur_toolkit imports
+sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from config_manager import config
-from workflow.workflow_executor import WorkflowExecutor
-from visual_servo.visual_servo_engine import VisualServoEngine
-from visual_servo.config import visual_servo_config
-from apriltag_detection import AprilTagDetector
-from robots.ur.ur_controller import URController
+from ur_toolkit.config_manager import config
+from ur_toolkit.workflow.workflow_executor import WorkflowExecutor
+from ur_toolkit.visual_servo.visual_servo_engine import VisualServoEngine
+from ur_toolkit.visual_servo.config import visual_servo_config
+from ur_toolkit.apriltag_detection import AprilTagDetector
+from ur_toolkit.robots.ur.ur_controller import URController
 
 
 def test_visual_servo_components():

@@ -1,11 +1,26 @@
 ## Development Practices
 
 - Start with minimal, lean implementations focused on proof-of-concept
+- Avoid creating new files until asked
 - Avoid implementing things from scratch
 - Avoid defensive error handling for hypothetical failures
 - Use print statements and logging sparingly, unless asked
 - Avoid light wrappers and custom classes, unless asked
-- Avoid `if __name__ == "__main__"` patterns in package code
+- Avoid `if __name__ == "__main__"` patterns in package code, unless asked
+  For example, rather than using:
+  ```python
+  from math import sqrt
+  def main():
+    sqrt(2)
+  
+  if __name__ == "__main__":
+    main()
+  ```
+  Leave it as a top-level script:
+  ```python
+  from math import sqrt
+  sqrt(2)
+  ```
 - Skip unit tests unless explicitly requested
 - Follow patterns in CONTRIBUTING.md when present
 - Prefer writing Python if no language specified
@@ -33,6 +48,7 @@
 
 ## Change Logging
 
+- Create CHANGELOG.md if it doesn't exist
 - Each time you generate code, note the changes in CHANGELOG.md
 - Follow semantic versioning guidelines
 - Include date and description of changes

@@ -1,0 +1,38 @@
+# Simple Visual Servo Test - Limited iterations
+# Basic test with only 2 iterations to debug
+
+workflow_info:
+  name: "Debug Visual Servo Test"
+  description: "Debug visual servoing with only 2 iterations"
+  version: "1.1"
+  author: "Robot System Tools"
+
+steps:
+  # Step 1: Move to home position
+  - action: movel
+    position: safe-home
+    speed: 0.2
+    description: "Move to safe home position"
+
+  # Step 2: Move to observation position
+  - action: movel
+    position: right-column-observe
+    speed: 0.1
+    description: "Move to observation position above right column"
+
+  # Step 3: Wait for settling
+  - action: delay
+    duration: 1.0
+    description: "Wait for system to settle"
+
+  # Step 4: Visual servo to grasp position (LIMITED ITERATIONS)
+  - action: visual_servo
+    position: grasp-B
+    max_iterations: 2
+    description: "Visual servo to grasp-B with only 2 iterations"
+
+  # Step 5: Return home
+  - action: movel
+    position: safe-home
+    speed: 0.2
+    description: "Return to safe home position"

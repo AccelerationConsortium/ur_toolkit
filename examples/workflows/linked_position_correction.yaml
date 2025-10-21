@@ -1,0 +1,46 @@
+# Linked Position Correction Workflow
+# This workflow demonstrates pose correction with linked positions:
+# 1. safe-home: Safe starting/ending position
+# 2. observe-right: Position to view AprilTag (will be corrected)
+# 3. grasp-right: Position to interact with object (linked to observe-right)
+#
+# Scenario: Equipment/AprilTag has moved since positions were taught
+# Robot corrects to realign with the original taught relationship to the AprilTag
+
+name: "Linked Position Correction"
+description: "Correct to original taught pose relationship when equipment has moved"
+
+steps:
+  - {action: "moveL", position: "safe-home", speed: 0.05}
+  - {action: "delay", duration: 1.0}
+  
+  # Move to taught observe position
+  - {action: "moveL", position: "observe-right", speed: 0.03}
+  - {action: "delay", duration: 2.0}
+  
+  # Set target from stored taught relationship instead of current detection
+  # This uses the camera_to_tag relationship from when observe-right was taught
+  - {action: "pose_correction_set_target_taught", position_name: "observe-right"}
+  
+  # Perform pose correction using the original taught AprilTag relationship
+  # This will move the robot to maintain the same relative pose to the AprilTag
+  # as when the position was originally taught, regardless of where the equipment moved
+  - {action: "pose_correction", tag_id: 2}
+  
+  # Test the corrected linked position
+  # NOTE: In a full implementation, grasp-right would be automatically
+  # updated based on the correction applied to observe-right
+  - {action: "moveL", position: "grasp-right", speed: 0.02}
+  - {action: "delay", duration: 1.0}
+  
+  # Return home
+  - {action: "moveL", position: "safe-home", speed: 0.05}
+  
+  # Test the corrected linked position
+  # NOTE: In a full implementation, grasp-right would be automatically
+  # updated based on the correction applied to observe-right
+  - {action: "moveL", position: "grasp-right", speed: 0.02}
+  - {action: "delay", duration: 1.0}
+  
+  # Return home
+  - {action: "moveL", position: "safe-home", speed: 0.05}

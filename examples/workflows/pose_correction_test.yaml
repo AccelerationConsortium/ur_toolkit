@@ -1,0 +1,79 @@
+# Pose Correction Test Workflow
+# Tests the new robust pose correction system
+
+workflow_info:
+  name: "Pose Correction Test"
+  description: "Test robust visual servoing with filtered pose estimates"
+  version: "1.0"
+  author: "Robot System Tools"
+
+steps:
+  # Step 1: Move to safe home position
+  - action: movel
+    position: safe-home
+    speed: 0.2
+    description: "Move to safe home position"
+
+  # Step 2: Move to observation position
+  - action: movel
+    position: right-column-observe
+    speed: 0.1
+    description: "Move to observation position above workspace"
+
+  # Step 3: Wait for system to settle
+  - action: delay
+    duration: 1.5
+    description: "Wait for system to settle"
+
+  # Step 4: Set target pose from current AprilTag detection
+  - action: pose_correction_set_target
+    tag_id: 2
+    description: "Set target pose from current AprilTag 2 detection"
+
+  # Step 5: Move robot slightly off-target to test correction
+  - action: offset_move
+    offset: [0.01, 0.01, 0.005, 0, 0, 0.05]  # 1cm XY, 5mm Z, small rotation
+    speed: 0.05
+    coordinate_system: tcp
+    description: "Move slightly off-target to test correction"
+
+  # Step 6: Wait briefly
+  - action: delay
+    duration: 1.0
+    description: "Wait before starting correction"
+
+  # Step 7: Perform robust pose correction
+  - action: pose_correction
+    tag_id: 2
+    max_iterations: 8
+    description: "Correct pose using robust visual servoing"
+
+  # Step 8: Verify final position
+  - action: delay
+    duration: 2.0
+    description: "Wait to verify final position"
+
+  # Step 9: Return to safe home
+  - action: movel
+    position: safe-home
+    speed: 0.1
+    description: "Return to safe home position"
+
+# Workflow configuration
+config:
+  pose_correction:
+    max_iterations: 8
+    position_tolerance: 0.003  # 3mm
+    rotation_tolerance: 0.087  # 5 degrees
+    max_correction_per_step: 0.015  # 1.5cm
+    step_size: 0.6  # 60% of calculated correction
+  
+  safety:
+    max_tcp_speed: 0.1
+    workspace_limits:
+      x_min: -0.3
+      x_max: 0.3
+      y_min: -0.3
+      y_max: 0.3
+      z_min: 0.1
+      z_max: 0.4

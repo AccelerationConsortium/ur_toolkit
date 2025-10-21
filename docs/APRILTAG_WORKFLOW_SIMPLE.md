@@ -65,7 +65,7 @@ import cv2
 robot = URController('192.168.0.10')
 camera = PiCam(PiCamConfig.from_yaml('camera_client_config.yaml'))
 detector = AprilTagDetector(
-    tag_family='tag36h11',
+    tag_family='tagStandard41h12',
     tag_size=0.023,
     camera_calibration_file='camera_calibration/camera_calibration.yaml'
 )
