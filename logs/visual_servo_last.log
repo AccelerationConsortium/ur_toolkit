@@ -1,0 +1,104 @@
+2025-10-21 17:33:24,932 INFO: Started visual servo script
+2025-10-21 17:33:24,932 INFO: Loaded mapping: C:\Users\kthch\Documents\github\ur_toolkit\camera_to_robot_mapping.npy
+2025-10-21 17:33:24,934 INFO: Control params: gain=0.06, max_speed=0.006, tolerance=0.005, max_iter=40
+2025-10-21 17:33:24,935 INFO: Initial pose: [-0.13497233 -0.58800792  0.26901487  0.00606732 -2.2529827   2.13905627]
+2025-10-21 17:33:24,935 INFO: Moving to pose-B-observe to simulate unknown start (slow)
+2025-10-21 17:33:24,935 DEBUG: pose-B-observe: [0.025, -0.422, 0.353, -0.529, -2.253, 1.63]
+2025-10-21 17:34:14,589 INFO: moveL to B-observe returned: True
+2025-10-21 17:34:15,090 INFO: Iteration 1/40
+2025-10-21 17:34:15,699 INFO: Tag distance (mm): 339.024
+2025-10-21 17:34:15,699 INFO: Velocity command (robot TCP mm/s): [-2.66755065 -4.88850794 -2.23308389]
+2025-10-21 17:34:15,699 INFO: speedL returned: True
+2025-10-21 17:34:16,208 INFO: Iteration 2/40
+2025-10-21 17:34:16,675 INFO: Tag distance (mm): 335.305
+2025-10-21 17:34:16,691 INFO: Velocity command (robot TCP mm/s): [-2.66719971 -4.88957421 -2.23116781]
+2025-10-21 17:34:16,691 INFO: speedL returned: True
+2025-10-21 17:34:17,191 INFO: Iteration 3/40
+2025-10-21 17:34:17,650 INFO: Tag distance (mm): 329.481
+2025-10-21 17:34:17,650 INFO: Velocity command (robot TCP mm/s): [-2.66796961 -4.89062112 -2.22795045]
+2025-10-21 17:34:17,650 INFO: speedL returned: True
+2025-10-21 17:34:18,150 INFO: Iteration 4/40
+2025-10-21 17:34:18,606 INFO: Tag distance (mm): 323.039
+2025-10-21 17:34:18,606 INFO: Velocity command (robot TCP mm/s): [-2.66771073 -4.89234804 -2.22446625]
+2025-10-21 17:34:18,606 INFO: speedL returned: True
+2025-10-21 17:34:19,107 INFO: Iteration 5/40
+2025-10-21 17:34:19,569 INFO: Tag distance (mm): 317.553
+2025-10-21 17:34:19,569 INFO: Velocity command (robot TCP mm/s): [-2.66630826 -4.89411937 -2.22225017]
+2025-10-21 17:34:19,569 INFO: speedL returned: True
+2025-10-21 17:34:20,070 INFO: Iteration 6/40
+2025-10-21 17:34:20,611 INFO: Tag distance (mm): 311.594
+2025-10-21 17:34:20,611 INFO: Velocity command (robot TCP mm/s): [-2.66668815 -4.89525731 -2.21928596]
+2025-10-21 17:34:20,611 INFO: speedL returned: True
+2025-10-21 17:34:21,115 INFO: Iteration 7/40
+2025-10-21 17:34:21,649 INFO: Tag distance (mm): 305.195
+2025-10-21 17:34:21,649 INFO: Velocity command (robot TCP mm/s): [-2.66847613 -4.89614156 -2.21518237]
+2025-10-21 17:34:21,649 INFO: speedL returned: True
+2025-10-21 17:34:22,154 INFO: Iteration 8/40
+2025-10-21 17:34:22,606 INFO: Tag distance (mm): 299.107
+2025-10-21 17:34:22,606 INFO: Velocity command (robot TCP mm/s): [-2.66771187 -4.89814503 -2.21167101]
+2025-10-21 17:34:22,606 INFO: speedL returned: True
+2025-10-21 17:34:23,109 INFO: Iteration 9/40
+2025-10-21 17:34:23,539 INFO: Tag distance (mm): 292.591
+2025-10-21 17:34:23,539 INFO: Velocity command (robot TCP mm/s): [-2.66806586 -4.89896692 -2.20942248]
+2025-10-21 17:34:23,539 INFO: speedL returned: True
+2025-10-21 17:34:24,041 INFO: Iteration 10/40
+2025-10-21 17:34:24,498 INFO: Tag distance (mm): 287.190
+2025-10-21 17:34:24,498 INFO: Velocity command (robot TCP mm/s): [-2.66887823 -4.90030697 -2.20546607]
+2025-10-21 17:34:24,498 INFO: speedL returned: True
+2025-10-21 17:34:24,999 INFO: Iteration 11/40
+2025-10-21 17:34:25,449 INFO: Tag distance (mm): 281.572
+2025-10-21 17:34:25,449 INFO: Velocity command (robot TCP mm/s): [-2.66844618 -4.90151785 -2.203297  ]
+2025-10-21 17:34:25,449 INFO: speedL returned: True
+2025-10-21 17:34:25,952 INFO: Iteration 12/40
+2025-10-21 17:34:26,425 INFO: Tag distance (mm): 276.145
+2025-10-21 17:34:26,425 INFO: Velocity command (robot TCP mm/s): [-2.66839813 -4.90289978 -2.20027842]
+2025-10-21 17:34:26,425 INFO: speedL returned: True
+2025-10-21 17:34:26,929 INFO: Iteration 13/40
+2025-10-21 17:34:27,429 INFO: Tag distance (mm): 269.608
+2025-10-21 17:34:27,429 INFO: Velocity command (robot TCP mm/s): [-2.66840971 -4.90426965 -2.19720931]
+2025-10-21 17:34:27,429 INFO: speedL returned: True
+2025-10-21 17:34:27,931 INFO: Iteration 14/40
+2025-10-21 17:34:28,372 INFO: Tag distance (mm): 263.643
+2025-10-21 17:34:28,375 INFO: Velocity command (robot TCP mm/s): [-2.66875277 -4.90525879 -2.19458308]
+2025-10-21 17:34:28,375 INFO: speedL returned: True
+2025-10-21 17:34:28,875 INFO: Iteration 15/40
+2025-10-21 17:34:29,346 INFO: Tag distance (mm): 258.493
+2025-10-21 17:34:29,346 INFO: Velocity command (robot TCP mm/s): [-2.66928687 -4.90674759 -2.19060169]
+2025-10-21 17:34:29,346 INFO: speedL returned: True
+2025-10-21 17:34:29,848 INFO: Iteration 16/40
+2025-10-21 17:34:30,317 INFO: Tag distance (mm): 252.224
+2025-10-21 17:34:30,317 INFO: Velocity command (robot TCP mm/s): [-2.66996393 -4.90779937 -2.18741811]
+2025-10-21 17:34:30,317 INFO: speedL returned: True
+2025-10-21 17:34:30,821 INFO: Iteration 17/40
+2025-10-21 17:34:31,265 INFO: Tag distance (mm): 246.282
+2025-10-21 17:34:31,265 INFO: Velocity command (robot TCP mm/s): [-2.67052406 -4.90945727 -2.18300951]
+2025-10-21 17:34:31,265 INFO: speedL returned: True
+2025-10-21 17:34:31,767 INFO: Iteration 18/40
+2025-10-21 17:34:32,213 INFO: Tag distance (mm): 240.791
+2025-10-21 17:34:32,213 INFO: Velocity command (robot TCP mm/s): [-2.67178374 -4.91013899 -2.17993275]
+2025-10-21 17:34:32,213 INFO: speedL returned: True
+2025-10-21 17:34:32,715 INFO: Iteration 19/40
+2025-10-21 17:34:33,276 INFO: Tag distance (mm): 234.604
+2025-10-21 17:34:33,276 INFO: Velocity command (robot TCP mm/s): [-2.67320023 -4.91113023 -2.17595964]
+2025-10-21 17:34:33,276 INFO: speedL returned: True
+2025-10-21 17:34:33,781 INFO: Iteration 20/40
+2025-10-21 17:34:34,236 INFO: Tag distance (mm): 228.409
+2025-10-21 17:34:34,236 INFO: Velocity command (robot TCP mm/s): [-2.67237473 -4.91295763 -2.17284622]
+2025-10-21 17:34:34,236 INFO: speedL returned: True
+2025-10-21 17:34:34,739 INFO: Iteration 21/40
+2025-10-21 17:34:35,174 INFO: Tag distance (mm): 222.882
+2025-10-21 17:34:35,180 INFO: Velocity command (robot TCP mm/s): [-2.67297206 -4.91404521 -2.16964974]
+2025-10-21 17:34:35,180 INFO: speedL returned: True
+2025-10-21 17:34:35,680 INFO: Iteration 22/40
+2025-10-21 17:34:36,129 INFO: Tag distance (mm): 218.811
+2025-10-21 17:34:36,134 INFO: Velocity command (robot TCP mm/s): [-2.67246045 -4.91538271 -2.16724893]
+2025-10-21 17:34:36,134 INFO: speedL returned: False
+2025-10-21 17:34:36,134 WARNING: speedL failed or returned False; stopping visual servo loop
+2025-10-21 17:34:36,335 INFO: Final pose (before final move): [-0.028275   -0.51980338  0.30898827 -0.52896156 -2.25304251  1.62993155]
+2025-10-21 17:34:36,335 INFO: Total displacement (mm): 132.7932665819281
+2025-10-21 17:34:36,335 INFO: Attempting final moveL to pose-A-observe (very slow)
+2025-10-21 17:34:36,335 INFO: moveL to A-observe returned: False
+2025-10-21 17:34:36,335 WARNING: Final move to pose-A-observe failed; attempting reconnect and retry
+2025-10-21 17:35:04,833 INFO: retry moveL to A-observe returned: True
+2025-10-21 17:35:04,833 INFO: Final move to pose-A-observe succeeded after reconnect
+2025-10-21 17:35:05,852 INFO: Disconnected from robot
