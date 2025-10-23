@@ -213,6 +213,14 @@ class VisualServoEngine:
             except Exception as e:
                 print(f"⚠️  Failed to initialize iteration logging: {e}")
                 self.iteration_log_enabled = False
+        # Engine logger - ensure file handler for persistent logs
+        try:
+            fh = logging.FileHandler('logs/visual_servo_engine.log')
+            fh.setLevel(logging.INFO)
+            fh.setFormatter(logging.Formatter('[VISUAL_SERVO_ENGINE] %(asctime)s %(levelname)s: %(message)s'))
+            self.logger.addHandler(fh)
+        except Exception:
+            pass
 
     def _log_iteration_event(
         self,
@@ -241,6 +249,13 @@ class VisualServoEngine:
             translation_norm = float(np.linalg.norm(translation_error)) if translation_error is not None else ''
             rotation_angle_scalar = rot_angle if rot_angle is not None else ''
             corr_norm = float(np.linalg.norm(applied_correction)) if applied_correction is not None else ''
+            # Obtain actual robot pose if available for extra diagnostics
+            actual_pose = None
+            try:
+                if hasattr(self, 'robot') and self.robot is not None and hasattr(self.robot, 'get_tcp_pose'):
+                    actual_pose = np.array(self.robot.get_tcp_pose())
+            except Exception:
+                actual_pose = None
             with open(self.iteration_log_path, 'a', newline='') as f:
                 writer = csv.writer(f)
                 writer.writerow([
@@ -249,6 +264,11 @@ class VisualServoEngine:
                     axis[0], axis[1], axis[2], angle_val,
                     int(rotation_flip_suppressed), translation_norm, rotation_angle_scalar, corr_norm
                 ])
+            # Also log to engine logger for real-time inspection
+            try:
+                self.logger.info(f"iter={iteration} pos={position_name} phase={phase} success={success} trans_err={trans_err.tolist()} rot_axis={axis.tolist()} rot_angle={angle_val} corr_norm={corr_norm} actual_pose={actual_pose.tolist() if actual_pose is not None else ''}")
+            except Exception:
+                pass
         except Exception:
             # Fail silently after first warning to avoid spamming
             pass
@@ -265,6 +285,10 @@ class VisualServoEngine:
             (success, metrics) tuple
         """
         print(f"\n🎯 Starting visual servoing to position '{position_name}'")
+
+        # Note: per-run metrics files are created inside the specific visual servo
+        # implementations (_visual_servo_direct / _visual_servo_via_observation)
+        # so we don't create an unused placeholder here.
 
         # Load position data
         position_data = self._get_position_data(position_name)
@@ -324,6 +348,22 @@ class VisualServoEngine:
             'corrections_applied': []
         }
 
+        # Prepare incremental run metrics file so progress is saved even on interruption
+        runs_dir = Path("logs") / "visual_servo_runs"
+        try:
+            runs_dir.mkdir(parents=True, exist_ok=True)
+        except Exception:
+            pass
+        run_ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+        run_metrics_file = runs_dir / f"{run_ts}_{position_name}_metrics.json"
+
+        # Write initial metrics file so there is always a file present
+        try:
+            with open(run_metrics_file, 'w') as mf:
+                json.dump(metrics, mf, default=lambda o: o.tolist() if hasattr(o, 'tolist') else o, indent=2)
+        except Exception:
+            pass
+
         current_robot_pose = stored_robot_pose.copy()
         total_correction = np.zeros(6)
 
@@ -361,14 +401,9 @@ class VisualServoEngine:
             R_rel = R_current @ R_stored.T
             rot_axis, rot_angle = self._matrix_to_axis_angle(R_rel)
 
-            # 180° flip heuristic: if angle near pi but translation small, treat as wrap ambiguity
+            # 180° flip heuristic removed: previously attempted flip suppression could
+            # introduce unintended large corrections when the rotation estimate was noisy.
             rotation_flip_suppressed = False
-            if rot_angle > math.pi * 0.9 and np.linalg.norm(translation_error) < 0.02:
-                # Suppress large ambiguous rotation: map to minimal equivalent (flip axis)
-                rotation_flip_suppressed = True
-                rot_angle = (2 * math.pi - rot_angle)
-                rot_axis = -rot_axis
-                print("⚪ Detected near-π rotation ambiguity -> applying flip suppression")
 
             # Compose axis-angle into error vector (axis * angle) for correction step
             rotation_error_vec = rot_axis * rot_angle
@@ -547,6 +582,12 @@ class VisualServoEngine:
                                       rot_angle=rot_angle,
                                       rotation_flip_suppressed=rotation_flip_suppressed,
                                       applied_correction=robot_correction)
+            # Persist incremental metrics after each correction so interruptions still preserve progress
+            try:
+                with open(run_metrics_file, 'w') as mf:
+                    json.dump(metrics, mf, default=lambda o: o.tolist() if hasattr(o, 'tolist') else o, indent=2)
+            except Exception:
+                pass
 
         # Final metrics
         metrics['total_correction'] = total_correction.tolist()
@@ -578,6 +619,13 @@ class VisualServoEngine:
         self.pose_history.record_correction(
             position_name, stored_robot_pose, current_robot_pose,
             stored_tag_pose, current_tag_pose, metrics)
+
+        # Final persist of metrics for this run
+        try:
+            with open(run_metrics_file, 'w') as mf:
+                json.dump(metrics, mf, default=lambda o: o.tolist() if hasattr(o, 'tolist') else o, indent=2)
+        except Exception:
+            pass
 
         # Option B propagation: if this position is an observation pose and update requested, update it
         if update_stored_pose and metrics['converged']:
@@ -675,6 +723,15 @@ class VisualServoEngine:
         """
         print(f"👁️  Observation-based visual servoing for '{position_name}'")
 
+        # Prepare incremental run metrics file so progress is saved even on interruption
+        runs_dir = Path("logs") / "visual_servo_runs"
+        try:
+            runs_dir.mkdir(parents=True, exist_ok=True)
+        except Exception:
+            pass
+        run_ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+        run_metrics_file = runs_dir / f"{run_ts}_{position_name}_metrics.json"
+
         observation_pose_name = position_data['observation_pose']
         observation_offset = np.array(position_data.get('observation_offset', [0, 0, 0, 0, 0, 0]))
 
@@ -716,6 +773,13 @@ class VisualServoEngine:
             'corrections_applied': []
         }
 
+        # Write initial metrics file
+        try:
+            with open(run_metrics_file, 'w') as mf:
+                json.dump(metrics, mf, default=lambda o: o.tolist() if hasattr(o, 'tolist') else o, indent=2)
+        except Exception:
+            pass
+
         # Calculate initial corrected target pose
         current_target_pose = stored_target_pose.copy()
         total_correction = np.zeros(6)
@@ -751,13 +815,8 @@ class VisualServoEngine:
             R_current = self._euler_to_matrix(*current_euler)
             R_rel = R_current @ R_stored.T
             rot_axis, rot_angle = self._matrix_to_axis_angle(R_rel)
+            # 180° flip heuristic removed here as well. Keep computed axis/angle unchanged.
             rotation_flip_suppressed = False
-            if rot_angle > math.pi * 0.9 and np.linalg.norm(translation_error) < 0.02:
-                rotation_flip_suppressed = True
-                # Apply flip suppression (space around operator for style)
-                rot_angle = (2 * math.pi - rot_angle)
-                rot_axis = -rot_axis
-                print("⚪ Detected near-π rotation ambiguity (observation) -> flip suppression applied")
             rotation_error_vec = rot_axis * rot_angle
             translation_norm = np.linalg.norm(translation_error)
             pose_error_magnitude = math.sqrt(translation_norm**2 + rot_angle**2)
@@ -923,6 +982,12 @@ class VisualServoEngine:
                                       rot_angle=rot_angle,
                                       rotation_flip_suppressed=rotation_flip_suppressed,
                                       applied_correction=robot_correction)
+            # Persist incremental metrics after each correction
+            try:
+                with open(run_metrics_file, 'w') as mf:
+                    json.dump(metrics, mf, default=lambda o: o.tolist() if hasattr(o, 'tolist') else o, indent=2)
+            except Exception:
+                pass
 
         # Step 6: Move to final corrected target pose
         if metrics['converged']:
@@ -951,6 +1016,13 @@ class VisualServoEngine:
         metrics['total_correction'] = total_correction.tolist()
         metrics['final_robot_pose'] = current_target_pose.tolist()
         metrics['final_obs_pose'] = (stored_obs_robot_pose + total_correction).tolist()
+
+        # Final persist of metrics for this run
+        try:
+            with open(run_metrics_file, 'w') as mf:
+                json.dump(metrics, mf, default=lambda o: o.tolist() if hasattr(o, 'tolist') else o, indent=2)
+        except Exception:
+            pass
 
         if not metrics['converged']:
             print(f"⚠️  Did not converge within {self.config.max_iterations} iterations")
@@ -1259,21 +1331,38 @@ class VisualServoEngine:
             4x4 transformation matrix or None if not available
         """
         calib_file = Path("src/ur_toolkit/hand_eye_calibration/hand_eye_calibration.json")
-        
+
         if not calib_file.exists():
             print("⚠️  No hand-eye calibration found - using coordinate frame mapping")
             return None
-            
+
         try:
             with open(calib_file, 'r') as f:
                 data = json.load(f)
-                
-            transform = np.array(data['hand_eye_transform'])
+
+            raw = data.get('hand_eye_transform', None)
+            if raw is None:
+                # backward compatibility: maybe top-level key was the matrix itself
+                raw = data
+
+            # Support two formats: { 'hand_eye_transform': { 'matrix': [[...]] } }
+            if isinstance(raw, dict) and 'matrix' in raw:
+                matrix = raw['matrix']
+            else:
+                matrix = raw
+
+            transform = np.array(matrix, dtype=float)
+
+            # Validate shape
+            if transform.ndim != 2 or transform.shape[0] != 4 or transform.shape[1] != 4:
+                print(f"⚠️  Hand-eye calibration present but invalid shape: {transform.shape}")
+                return None
+
             print("✅ Hand-eye calibration loaded successfully")
-            print(f"   Calibration date: {data.get('calibration_date', 'Unknown')}")
-            
+            print(f"   Calibration date: {data.get('calibration_info', {}).get('timestamp', data.get('calibration_date', 'Unknown'))}")
+
             return transform
-            
+
         except Exception as e:
             print(f"⚠️  Failed to load hand-eye calibration: {e}")
             return None
