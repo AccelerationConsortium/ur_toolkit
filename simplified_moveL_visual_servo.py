@@ -1,20 +1,21 @@
 #!/usr/bin/env python3
 """
-Simplified Visual Servoing using moveL and gradient descent approach.
+Simplified Visual Servoing using moveL and full 6-DOF gradient descent approach.
 
 This implementation uses a simple iterative position-based approach:
 1. Detect AprilTag and compute pose error
-2. Use moveL to move towards target (leveraging UR's robust inverse kinematics)
-3. Repeat until convergence
+2. Estimate full 6-DOF gradient by probing XYZ position AND roll-pitch-yaw orientation
+3. Use moveL to move towards target (leveraging UR's robust inverse kinematics)
+4. Repeat until convergence
 
-No complex Jacobians or velocity commands - just simple gradient descent with moveL.
+No complex Jacobians or velocity commands - just simple 6-DOF gradient descent with moveL.
+Generates animated GIF showing convergence process.
 """
 
 import numpy as np
 from scipy.spatial.transform import Rotation
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation, PillowWriter
-import cv2
 
 # Simple UR robot kinematic simulator
 class SimpleURSimulator:
