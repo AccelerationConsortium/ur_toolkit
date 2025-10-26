@@ -72,7 +72,8 @@ def visual_servo_gradient_descent():
     
     # Control parameters
     max_iterations = 50
-    gain = 0.2  # How much of the error to correct each step (0-1) - conservative for stability
+    first_move_gain = 0.97  # Aggressive first move to get very close (97% of error)
+    subsequent_gain = 0.2  # Conservative for fine-tuning (20% of remaining error)
     momentum = 0.5  # Smoothing factor to reduce oscillation
     convergence_threshold = 0.001  # 1mm position error
     
@@ -113,11 +114,14 @@ def visual_servo_gradient_descent():
         # The error vector points FROM current TO target, so we move IN that direction
         correction = error_vec  # Positive - move in direction of error to reduce it
         
+        # Select gain based on iteration (first move is aggressive, rest are conservative)
+        current_gain = first_move_gain if iteration == 0 else subsequent_gain
+        
         # Apply momentum for smoother convergence
         velocity = momentum * velocity + (1 - momentum) * correction
         
         # Compute new pose by applying combined correction to ALL 6 DOF at once
-        new_pose = current_pose + gain * velocity
+        new_pose = current_pose + current_gain * velocity
         
         # Execute single moveL command with combined 6-DOF correction
         robot.moveL(new_pose)
