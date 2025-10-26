@@ -1,15 +1,19 @@
 #!/usr/bin/env python3
 """
-6-DOF Visual Servoing using moveL with Gradient Descent.
+6-DOF Visual Servoing using moveL with Direct Error Correction.
 
-This implementation uses gradient descent over all 6 degrees of freedom (x, y, z, roll, pitch, yaw):
-1. Detect AprilTag and compute 6-DOF pose error
-2. Perturb position in all 6 directions to estimate local gradient
-3. Move in direction of steepest descent using moveL
+This implementation uses the detected AprilTag pose error directly:
+1. Detect AprilTag and compute full 6-DOF pose error vector [x, y, z, roll, pitch, yaw]
+2. Apply ONE moveL command with scaled error as correction (corrects all 6 DOF simultaneously)
+3. Use momentum damping for smooth convergence
 4. Repeat until convergence
 
+Key insight: The AprilTag detector already gives us the full 6-DOF error. We don't need
+to probe in multiple directions - just directly use the error vector and move to reduce it.
+All 6 dimensions are corrected together in each moveL command for smooth, direct convergence.
+
 Uses UR robot's robust inverse kinematics with simple moveL commands.
-No complex Jacobians or velocity control required.
+No complex Jacobians, velocity control, or gradient probing required.
 """
 
 import numpy as np
@@ -49,46 +53,16 @@ class SimpleURSimulator:
         return np.concatenate([pos_error, rot_error])
 
 
-def compute_gradient_6dof(robot, target_pose, step_size=0.002):
-    """
-    Compute gradient by perturbing all 6 DOF (x, y, z, roll, pitch, yaw).
-    
-    Returns:
-        gradient: 6D vector indicating direction of steepest descent
-        current_error: Current error magnitude
-    """
-    current_pose = robot.get_tcp_pose()
-    current_error_vec = robot.detect_apriltag(target_pose)
-    current_error = np.linalg.norm(current_error_vec)
-    
-    gradient = np.zeros(6)
-    
-    # Perturb each of 6 DOF and measure error change
-    for i in range(6):
-        # Positive perturbation
-        test_pose = current_pose.copy()
-        test_pose[i] += step_size
-        robot.moveL(test_pose)
-        error_plus = np.linalg.norm(robot.detect_apriltag(target_pose))
-        
-        # Negative perturbation
-        test_pose = current_pose.copy()
-        test_pose[i] -= step_size
-        robot.moveL(test_pose)
-        error_minus = np.linalg.norm(robot.detect_apriltag(target_pose))
-        
-        # Gradient approximation
-        gradient[i] = (error_plus - error_minus) / (2 * step_size)
-        
-    # Restore original pose
-    robot.moveL(current_pose)
-    
-    return gradient, current_error
-
-
 def visual_servo_gradient_descent():
     """
     Run visual servoing with 6-DOF gradient descent using moveL.
+    
+    At each iteration:
+    1. Detect AprilTag and get 6-DOF pose error (all components at once)
+    2. Apply one moveL command with a scaled version of the error as correction
+    
+    This corrects position and orientation simultaneously in each move based on
+    the detected AprilTag pose error.
     """
     # Initialize robot simulator
     robot = SimpleURSimulator()
@@ -96,47 +70,68 @@ def visual_servo_gradient_descent():
     # Target pose (where we want the robot to go)
     target_pose = np.array([0.1, -0.3, 0.35, 0.0, 0.0, 0.0])
     
-    # Gradient descent parameters
+    # Control parameters
     max_iterations = 50
-    step_multiplier = 0.1  # How far to move in gradient direction
+    gain = 0.2  # How much of the error to correct each step (0-1) - conservative for stability
+    momentum = 0.5  # Smoothing factor to reduce oscillation
     convergence_threshold = 0.001  # 1mm position error
     
-    # Storage for visualization
+    # Storage for visualization and momentum
     poses_history = []
     errors_history = []
+    velocity = np.zeros(6)  # Accumulated velocity for momentum
     
-    print("Starting 6-DOF Visual Servoing with Gradient Descent")
+    print("Starting 6-DOF Visual Servoing with Combined Error Correction")
     print(f"Initial pose: {robot.get_tcp_pose()}")
     print(f"Target pose:  {target_pose}")
-    print(f"Initial error: {np.linalg.norm(robot.detect_apriltag(target_pose)):.4f} m\n")
+    
+    current_pose = robot.get_tcp_pose()
+    error_vec = robot.detect_apriltag(target_pose)
+    initial_error = np.linalg.norm(error_vec)
+    print(f"Initial error: {initial_error:.4f} m\n")
     
     for iteration in range(max_iterations):
-        # Compute 6-DOF gradient
-        gradient, current_error = compute_gradient_6dof(robot, target_pose)
+        # Get current pose and detect full 6-DOF error vector
+        current_pose = robot.get_tcp_pose()
+        error_vec = robot.detect_apriltag(target_pose)
+        current_error = np.linalg.norm(error_vec)
         
         # Store for visualization
-        poses_history.append(robot.get_tcp_pose().copy())
+        poses_history.append(current_pose.copy())
         errors_history.append(current_error)
         
-        print(f"Iteration {iteration:2d}: Error = {current_error:.6f} m")
+        print(f"Iteration {iteration:2d}: Error = {current_error:.6f} m, "
+              f"Error vector = [{error_vec[0]:.3f}, {error_vec[1]:.3f}, {error_vec[2]:.3f}, "
+              f"{error_vec[3]:.3f}, {error_vec[4]:.3f}, {error_vec[5]:.3f}]")
         
         # Check convergence
         if current_error < convergence_threshold:
             print(f"\n✓ Converged after {iteration} iterations!")
             break
         
-        # Move in direction of negative gradient (steepest descent)
-        current_pose = robot.get_tcp_pose()
-        new_pose = current_pose - step_multiplier * gradient
+        # The correction is proportional to the error vector
+        # The error vector points FROM current TO target, so we move IN that direction
+        correction = error_vec  # Positive - move in direction of error to reduce it
         
-        # Execute moveL to new pose
+        # Apply momentum for smoother convergence
+        velocity = momentum * velocity + (1 - momentum) * correction
+        
+        # Compute new pose by applying combined correction to ALL 6 DOF at once
+        new_pose = current_pose + gain * velocity
+        
+        # Execute single moveL command with combined 6-DOF correction
         robot.moveL(new_pose)
     
-    poses_history.append(robot.get_tcp_pose().copy())
-    errors_history.append(np.linalg.norm(robot.detect_apriltag(target_pose)))
+    # Final measurements
+    final_pose = robot.get_tcp_pose()
+    final_error_vec = robot.detect_apriltag(target_pose)
+    final_error = np.linalg.norm(final_error_vec)
     
-    print(f"\nFinal pose:  {robot.get_tcp_pose()}")
-    print(f"Final error: {errors_history[-1]:.6f} m")
+    poses_history.append(final_pose.copy())
+    errors_history.append(final_error)
+    
+    print(f"\nFinal pose:  {final_pose}")
+    print(f"Final error: {final_error:.6f} m")
     
     return np.array(poses_history), np.array(errors_history), target_pose
 
@@ -151,7 +146,7 @@ def create_visualization(poses_history, errors_history, target_pose):
     ax1.set_xlabel('X (m)')
     ax1.set_ylabel('Y (m)')
     ax1.set_zlabel('Z (m)')
-    ax1.set_title('6-DOF Visual Servoing Trajectory\n(moveL + Gradient Descent)')
+    ax1.set_title('6-DOF Visual Servoing Trajectory\n(moveL + Combined Gradient Descent)')
     
     # Plot full trajectory
     ax1.plot(poses_history[:, 0], poses_history[:, 1], poses_history[:, 2], 
@@ -255,7 +250,7 @@ def create_animation_gif(poses_history, errors_history, target_pose, filename='m
             ax3.legend()
         
         # Update title with current error
-        fig.suptitle(f'6-DOF Visual Servoing (moveL + Gradient Descent)\n'
+        fig.suptitle(f'6-DOF Visual Servoing (moveL + Direct Error Correction)\n'
                     f'Iteration {frame}/{len(poses_history)-1} | '
                     f'Error: {errors_history[frame]:.6f} m',
                     fontsize=12)
