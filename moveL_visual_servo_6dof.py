@@ -72,7 +72,7 @@ def visual_servo_gradient_descent():
     
     # Control parameters
     max_iterations = 50
-    first_move_gain = 0.97  # Aggressive first move to get very close (97% of error)
+    first_move_gain = 1.0  # First move: go directly to target (100% correction)
     subsequent_gain = 0.2  # Conservative for fine-tuning (20% of remaining error)
     momentum = 0.5  # Smoothing factor to reduce oscillation
     convergence_threshold = 0.001  # 1mm position error
