@@ -62,3 +62,42 @@ franka_control_suite/build/
 !robot_toolkit/robot_arm_algos/src/inference/objects/**/*.dae
 !robot_toolkit/robot_arm_algos/src/inference/objects/**/*.mtl
 !robot_toolkit/robot_arm_algos/src/inference/objects/**/*.obj*.png
+
+# === Added empirical mapping workflow artifacts ===
+# Ignore historical taught position snapshots (keep primary taught_positions.yaml)
+src/ur_toolkit/positions/taught_positions.snapshot.*.yaml
+
+# Ignore visual servo run metric JSON logs (can be large/noisy)
+logs/visual_servo_runs/*.json
+
+# Ignore intermediate refinement matrices
+refined_partial_*.npy
+
+# If relying solely on 6×6 mapping, axis_mapping.json can be ignored (uncomment if desired)
+# src/ur_toolkit/visual_servo/axis_mapping.json
+
+# === Hand-eye & checkerboard calibration assets (ignored per user request) ===
+# Ignore entire hand_eye_calibration directory and its session logs/artifacts
+src/ur_toolkit/hand_eye_calibration/
+
+# Ignore any scripts primarily for hand-eye or checkerboard workflows
+scripts/run_hand_eye_calibration.py
+scripts/run_manual_hand_eye_calibration_extended.py
+scripts/run_checkerboard_hand_eye_calibration.py
+scripts/analyze_hand_eye_raw_session.py
+scripts/diagnose_hand_eye_frames.py
+scripts/analyze_checkerboard_session.py
+
+# Ignore checkerboard images and related captured datasets
+checkerboard_images/
+**/checkerboard_images/
+**/handeye_calibration*/
+**/handeye_rework*/
+
+# Ignore standalone analysis helpers
+analyze_calibration_accuracy.py
+
+# Keep empirical mapping matrix and optional axis mapping
+!camera_to_robot_mapping.npy
+!src/ur_toolkit/visual_servo/axis_mapping.json
+

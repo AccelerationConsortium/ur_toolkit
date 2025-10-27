@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+  - Enhanced empirical linear mapping calibration script (`scripts/calibrate_camera_to_robot.py`) with random sampling, residual/condition reporting, axis_mapping.json derivation and CLI flags (--samples, --random, --emit-axis-mapping)
+  - Added optional rotation-inclusive mode (--include-rotation, --rot-step) producing local 6×6 Jacobian mapping (translation+rotation) to `scripts/calibrate_camera_to_robot.py`
+  - Visual servo engine auto-loads `camera_to_robot_mapping.npy` (3×3 or 6×6) and applies empirical mapping for corrections when present
+  - Online refinement script (`scripts/refine_mapping_gradient_descent.py`) for incremental gradient-descent updates to mapping matrix M when AprilTag position drifts (translation-only)
+  - Config flag `visual_servo.ignore_hand_eye_calibration` to force pure axis / linear mapping mode even when a hand-eye file exists
+  - Automatic honoring of the above flag inside `VisualServoEngine` (hand-eye transform suppressed when flag true)
+  - Axis mapping override file `src/ur_toolkit/visual_servo/axis_mapping.json` enabling configurable camera→robot axis/sign remapping in fallback (non-calibrated) visual servo mode
+  - Demo script `scripts/demo_axis_mapping.py` to visualize effect of override vs default heuristic mapping
+  - Config flag already present: `visual_servo.use_axis_mapping_override` (set true by default) now exercised via the new mapping file
+  - Recalibration script `scripts/recalibrate_position_axis_mapping.py` to recompute robot pose for a taught AprilTag position using axis mapping or hand-eye calibration with optional apply/update actions
   - Updated default AprilTag family from `tag36h11` to `tagStandard41h12` (recommended by AprilRobotics)
   - Added `tagStandard41h12` to supported families in AprilTag detection and argument parser
   - Updated all documentation and examples to use the new recommended family
@@ -92,6 +102,25 @@ All notable changes to this project will be documented in this file.
 
 - AprilTag detection works effectively without requiring camera-to-robot transformation
 - Simplified codebase focuses on core functionality: camera capture, AprilTag detection, and robot control as separate components
+
+## [2025-10-27] - Transition to Pure Empirical Mapping & Ignoring Hand-Eye Assets
+
+### Changed
+- Updated `.gitignore` to ignore all hand-eye and checkerboard calibration related assets:
+  - `src/ur_toolkit/hand_eye_calibration/` directory and session artifacts
+  - Hand-eye / checkerboard scripts (`run_hand_eye_calibration.py`, manual/extended variants, analysis & diagnostic helpers)
+  - Captured checkerboard image folders and legacy calibration datasets
+  - Standalone analysis helpers (`analyze_calibration_accuracy.py`, `analyze_checkerboard_session.py`, etc.)
+- Retained only empirical mapping artifacts: `camera_to_robot_mapping.npy` (3×3 or 6×6) and optional fallback `axis_mapping.json`.
+- Enforced mapping-only mode via `ignore_hand_eye_calibration` flag for simplified workflow.
+
+### Added
+- Documentation of repository cleanup aligning with simplified AprilTag → empirical mapping correction pipeline.
+
+### Notes
+- 6×6 local Jacobian mapping remains accurate for small rotations; large single-step rotations (> ~25–30°) may produce suboptimal corrections due to linearization and AprilTag pose noise.
+- Recommended approach: staged corrections (reduce translation first; apply incremental rotation) or collect additional calibration samples with deliberate rotational perturbations to improve rotational sub-block conditioning.
+- Potential future enhancement: adaptive re-linearization (capture a fresh local neighborhood of delta poses when rotation error persists above threshold) to update the Jacobian online.
 
 ## [2025-09-12] - Camera Coordinate Frame Correction for Hand-Eye Calibration
 
