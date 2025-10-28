@@ -28,8 +28,14 @@ class SimpleURSimulator:
         self.tcp_pose = np.array([0.0, -0.4, 0.3, 0.1, 0.2, -0.15])  # [x, y, z, rx, ry, rz] in radians
         
     def moveL(self, target_pose):
-        """Simulate moveL command - moves TCP to target pose"""
-        self.tcp_pose = np.array(target_pose)
+        """Simulate moveL command - moves TCP to target pose with small noise"""
+        # Add small uniformly distributed noise (up to 0.05% of commanded motion)
+        noise_level = 0.0005  # 0.05% = 0.0005
+        noise = np.random.uniform(-noise_level, noise_level, size=6)
+        # Apply noise proportional to the commanded change
+        commanded_change = np.array(target_pose) - self.tcp_pose
+        noisy_target = np.array(target_pose) + noise * np.abs(commanded_change)
+        self.tcp_pose = noisy_target
         return True
         
     def get_tcp_pose(self):
@@ -118,7 +124,10 @@ def visual_servo_gradient_descent():
         current_gain = first_move_gain if iteration == 0 else subsequent_gain
         
         # Apply momentum for smoother convergence
-        velocity = momentum * velocity + (1 - momentum) * correction
+        # First move: no momentum smoothing (momentum=1.0), just go directly
+        # Subsequent moves: apply momentum smoothing (momentum=0.5) for gradual convergence
+        current_momentum = 1.0 if iteration == 0 else momentum
+        velocity = current_momentum * velocity + (1 - current_momentum) * correction
         
         # Compute new pose by applying combined correction to ALL 6 DOF at once
         new_pose = current_pose + current_gain * velocity
